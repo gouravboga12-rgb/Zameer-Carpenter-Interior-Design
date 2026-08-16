@@ -1,14 +1,26 @@
 import { COMPANY_INFO } from '../data/companyInfo';
 import { formatCurrencyINR } from './formatters';
 
-const WHATSAPP_NUMBER = COMPANY_INFO.whatsappRaw.replace('+', '');
+function getActiveWhatsAppNumber() {
+  try {
+    const saved = localStorage.getItem('zameer_settings_cache');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.whatsappRaw) {
+        return parsed.whatsappRaw.replace(/[^\d]/g, '');
+      }
+    }
+  } catch (e) {}
+  return COMPANY_INFO.whatsappRaw.replace(/[^\d]/g, '');
+}
 
 /**
  * Helper to build standard whatsapp click-to-chat URL
  */
 export function buildWhatsAppUrl(messageText) {
+  const number = getActiveWhatsAppNumber();
   const encoded = encodeURIComponent(messageText.trim());
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
+  return `https://wa.me/${number}?text=${encoded}`;
 }
 
 /**
@@ -88,12 +100,12 @@ I would like to create a similar design for my space. Could we discuss the possi
 export function getConsultationWhatsAppUrl({ name, phone, service, spaceType, message }) {
   const text = `Hello Zameer Interiors,
 
-New Consultation Request from Website:
-👤 Name: ${name}
+New Site Consultation Request:
+👤 Name: ${name || 'Customer'}
 📱 Phone: ${phone}
-🛠 Service Needed: ${service || "General Interior Consultation"}
-🏢 Space Type: ${spaceType || "Residential / Commercial"}
-📝 Notes / Message: ${message || "Interested in turnkey execution"}
+🛠 Service Needed: ${service || 'Complete Home Interior Design'}
+🏢 Space Type: ${spaceType || '2BHK / 3BHK Residential'}
+📝 Notes / Message: ${message || 'Site measurement & 3D consultation'}
 
 Please get in touch with me to schedule our site visit.`;
 

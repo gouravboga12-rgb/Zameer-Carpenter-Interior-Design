@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { SERVICES_DATA } from '../data/servicesData';
 import { PORTFOLIO_PROJECTS, REAL_PROJECT_VIDEOS } from '../data/portfolioData';
 import { COMPANY_INFO } from '../data/companyInfo';
-import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
+import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl, getConsultationWhatsAppUrl } from '../utils/whatsapp';
 
 const AdminDataContext = createContext(null);
 
@@ -185,8 +185,14 @@ export function AdminDataProvider({ children }) {
       console.warn('Saved locally, Supabase insert deferred:', e);
     }
 
-    // Build WhatsApp URL & Open
-    const waUrl = getServiceInquiryWhatsAppUrl(newEntry.service_title);
+    // Build WhatsApp URL with full details & Open
+    const waUrl = getConsultationWhatsAppUrl({
+      name: newEntry.name,
+      phone: newEntry.phone,
+      service: newEntry.service_title,
+      spaceType: newEntry.property_type,
+      message: newEntry.notes
+    });
     window.open(waUrl, '_blank');
     return newEntry;
   };
@@ -227,8 +233,14 @@ export function AdminDataProvider({ children }) {
       console.warn('Saved locally, Supabase insert deferred:', e);
     }
 
-    // Build WhatsApp URL & Open
-    const waUrl = getGeneralWhatsAppUrl();
+    // Build WhatsApp URL with full details & Open
+    const waUrl = getConsultationWhatsAppUrl({
+      name: newEntry.name,
+      phone: newEntry.phone,
+      service: formData.serviceTitle || formData.service || 'Complete Home Interior Design',
+      spaceType: newEntry.property_type,
+      message: newEntry.notes
+    });
     window.open(waUrl, '_blank');
     return newEntry;
   };
