@@ -12,6 +12,18 @@ export const ADMIN_CREDENTIALS = {
   password: 'Zameer@9390'
 };
 
+function mergeInquiries(localList, remoteList) {
+  const map = new Map();
+  (remoteList || []).forEach(item => map.set(item.id || item.phone + '_' + item.created_at, item));
+  (localList || []).forEach(item => {
+    const key = item.id || item.phone + '_' + item.created_at;
+    if (!map.has(key)) {
+      map.set(key, item);
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+}
+
 export function AdminDataProvider({ children }) {
   // 1. Admin Authentication State
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
@@ -54,7 +66,7 @@ export function AdminDataProvider({ children }) {
     };
   });
 
-  // Load / Sync initial data from Supabase
+  // Load / Sync initial data from Supabase & keep sync alive
   useEffect(() => {
     fetchSupabaseData();
   }, []);
@@ -101,18 +113,22 @@ export function AdminDataProvider({ children }) {
         localStorage.setItem('zameer_projects_cache', JSON.stringify(formattedP));
       }
 
-      // Sync Service Inquiries
-      const { data: dbSInquiries } = await supabase.from('service_inquiries').select('*').order('created_at', { ascending: false });
-      if (dbSInquiries) {
-        setServiceInquiries(dbSInquiries);
-        localStorage.setItem('zameer_service_inquiries', JSON.stringify(dbSInquiries));
+      // Sync Service Inquiries smoothly without overwriting local submissions
+      const { data: dbSInquiries, error: sinqErr } = await supabase.from('service_inquiries').select('*').order('created_at', { ascending: false });
+      if (!sinqErr && dbSInquiries) {
+        const localS = JSON.parse(localStorage.getItem('zameer_service_inquiries') || '[]');
+        const mergedS = mergeInquiries(localS, dbSInquiries);
+        setServiceInquiries(mergedS);
+        localStorage.setItem('zameer_service_inquiries', JSON.stringify(mergedS));
       }
 
-      // Sync Contact Inquiries
-      const { data: dbCInquiries } = await supabase.from('contact_inquiries').select('*').order('created_at', { ascending: false });
-      if (dbCInquiries) {
-        setContactInquiries(dbCInquiries);
-        localStorage.setItem('zameer_contact_inquiries', JSON.stringify(dbCInquiries));
+      // Sync Contact Inquiries smoothly without overwriting local submissions
+      const { data: dbCInquiries, error: cinqErr } = await supabase.from('contact_inquiries').select('*').order('created_at', { ascending: false });
+      if (!cinqErr && dbCInquiries) {
+        const localC = JSON.parse(localStorage.getItem('zameer_contact_inquiries') || '[]');
+        const mergedC = mergeInquiries(localC, dbCInquiries);
+        setContactInquiries(mergedC);
+        localStorage.setItem('zameer_contact_inquiries', JSON.stringify(mergedC));
       }
 
       // Sync Settings
@@ -149,25 +165,27 @@ export function AdminDataProvider({ children }) {
     localStorage.removeItem('zameer_admin_auth');
   };
 
-  // Service Form Submission (Saves to Admin + Triggers WhatsApp)
+  // Service Form Submission (Saves to Admin + Supabase + Triggers WhatsApp)
   const submitServiceInquiry = async (formData) => {
     const newEntry = {
       id: 'sinq_' + Date.now(),
       service_id: formData.serviceId || 'general',
-      service_title: formData.serviceTitle || 'Complete Interiors',
+      service_title: formData.serviceTitle || formData.service || 'Complete Interiors',
       name: formData.name || 'Anonymous',
       phone: formData.phone || '',
       location: formData.location || 'Hyderabad',
-      property_type: formData.propertyType || 'Residential',
-      notes: formData.notes || '',
+      property_type: formData.propertyType || formData.spaceType || 'Residential',
+      notes: formData.notes || formData.message || '',
       status: 'New',
       created_at: new Date().toISOString()
     };
 
-    // Update Local State & Cache
-    const updated = [newEntry, ...serviceInquiries];
-    setServiceInquiries(updated);
-    localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+    // Update Local State & Cache Immediately
+    setServiceInquiries(prev => {
+      const updated = [newEntry, ...prev];
+      localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+      return updated;
+    });
 
     // Try Supabase Insert
     try {
@@ -197,7 +215,7 @@ export function AdminDataProvider({ children }) {
     return newEntry;
   };
 
-  // Contact Page Consultation Submission (Saves to Admin + Triggers WhatsApp)
+  // Contact Page Consultation Submission (Saves to Admin + Supabase + Triggers WhatsApp)
   const submitContactInquiry = async (formData) => {
     const newEntry = {
       id: 'cinq_' + Date.now(),
@@ -205,17 +223,19 @@ export function AdminDataProvider({ children }) {
       phone: formData.phone || '',
       email: formData.email || '',
       location: formData.location || 'Hyderabad',
-      property_type: formData.propertyType || '3BHK Villa / Apartment',
+      property_type: formData.propertyType || formData.spaceType || '3BHK Villa / Apartment',
       project_timeline: formData.timeline || 'Immediate',
-      notes: formData.notes || '',
+      notes: formData.notes || formData.message || '',
       status: 'New',
       created_at: new Date().toISOString()
     };
 
-    // Update Local State & Cache
-    const updated = [newEntry, ...contactInquiries];
-    setContactInquiries(updated);
-    localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+    // Update Local State & Cache Immediately
+    setContactInquiries(prev => {
+      const updated = [newEntry, ...prev];
+      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+      return updated;
+    });
 
     // Try Supabase Insert
     try {
