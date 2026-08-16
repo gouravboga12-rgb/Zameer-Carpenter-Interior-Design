@@ -33,15 +33,25 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-16 sm:pt-20 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-luxury-walnut/90 backdrop-blur-md"
+            className="fixed inset-0 bg-luxury-walnut/90 backdrop-blur-md cursor-pointer"
           />
+
+          {/* Floating High-Visibility Close Button (Top Right) */}
+          <button
+            onClick={onClose}
+            aria-label="Close modal"
+            className="fixed top-4 right-4 sm:top-6 sm:right-8 z-[60] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-extrabold text-xs uppercase tracking-wider shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 border border-luxury-walnut cursor-pointer"
+          >
+            <span>Close</span>
+            <X className="w-4 h-4" />
+          </button>
 
           {/* Modal Container */}
           <motion.div
@@ -49,7 +59,7 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative z-10 w-full max-w-4xl bg-luxury-card rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/40 max-h-[95vh] flex flex-col"
+            className="relative z-10 w-full max-w-4xl bg-luxury-card rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/40 max-h-[88vh] flex flex-col my-auto"
           >
             {/* Modal Header */}
             <div className="p-3.5 sm:p-4 bg-luxury-walnut text-[#FDFBF7] flex items-center justify-between border-b border-luxury-gold/20 shrink-0">
@@ -67,21 +77,22 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                 </span>
               </div>
 
-              {/* Close Button */}
+              {/* Header Close Button */}
               <button
                 onClick={onClose}
                 aria-label="Close media modal"
-                className="p-1.5 rounded-full bg-white/10 hover:bg-luxury-gold hover:text-luxury-walnut transition-colors text-white shrink-0 ml-2"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-luxury-gold text-luxury-walnut hover:bg-yellow-400 font-bold text-xs transition-all shadow-sm shrink-0 ml-2 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <span>Close</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Body */}
             <div className="overflow-y-auto p-3 sm:p-5 space-y-3.5">
               
-              {/* Media Display Area (Fully Visible on Mobile & Responsive) */}
-              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg bg-black flex items-center justify-center min-h-[200px] max-h-[60vh] sm:max-h-[68vh] w-full">
+              {/* Media Display Area (Fully Visible on Desktop & Mobile) */}
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg bg-black flex items-center justify-center min-h-[200px] max-h-[55vh] sm:max-h-[62vh] w-full">
                 {isVideo ? (
                   <video
                     ref={videoRef}
@@ -91,13 +102,13 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                     autoPlay
                     muted
                     playsInline
-                    className="w-full h-auto max-h-[60vh] sm:max-h-[68vh] object-contain mx-auto bg-black"
+                    className="w-full h-auto max-h-[55vh] sm:max-h-[62vh] object-contain mx-auto bg-black"
                   />
                 ) : (
                   <img
                     src={project.image}
                     alt={project.title}
-                    className="w-full h-auto max-h-[60vh] sm:max-h-[68vh] object-contain mx-auto bg-black"
+                    className="w-full h-auto max-h-[55vh] sm:max-h-[62vh] object-contain mx-auto bg-black"
                   />
                 )}
 
@@ -109,7 +120,7 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                       onPrev();
                     }}
                     aria-label="Previous project"
-                    className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
+                    className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20 cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -123,7 +134,7 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                       onNext();
                     }}
                     aria-label="Next project"
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20 cursor-pointer"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
