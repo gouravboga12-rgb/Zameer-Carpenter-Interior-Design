@@ -36,111 +36,118 @@ export default function ContactPage() {
   return (
     <div className="pt-24 sm:pt-28 pb-16 bg-luxury-bg">
       
-      {/* Main Contact Grid (Map + Form) */}
-      <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Main Contact Grid: Consultation Form ON TOP followed by Contact Info */}
+      <section className="py-8 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        
+        {/* 1. TOP: Book Free Site Consultation Form */}
+        <div className="max-w-4xl mx-auto">
+          <ConsultationForm />
+        </div>
+
+        {/* 2. FOLLOWED BY: Contact Info Details & Google Map */}
+        <div className="max-w-5xl mx-auto space-y-8">
           
-          {/* Left Column: Direct Info & Google Map */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Quick Contact Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <a
-                href={`tel:${COMPANY_INFO.phoneRaw}`}
-                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-luxury-gold/30 hover:border-luxury-gold"
-              >
-                <div className="w-10 h-10 rounded-xl bg-luxury-walnut text-luxury-gold flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-luxury-gold group-hover:text-luxury-walnut transition-all">
-                  <Phone className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-luxury-muted block">
-                    Direct Phone
-                  </span>
-                  <span className="font-sans font-bold tracking-tight text-sm sm:text-base text-luxury-walnut group-hover:text-luxury-gold-dark">
-                    {COMPANY_INFO.phone}
-                  </span>
-                </div>
-              </a>
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
+              Direct Contact & Studio
+            </span>
+            <h3 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
+              Connect Directly with Our Workshop & Design Leads
+            </h3>
+          </div>
 
-              <a
-                href={getGeneralWhatsAppUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-emerald-500/30 hover:border-emerald-500"
-              >
-                <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 shadow-sm">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-luxury-muted block">
-                    WhatsApp Chat
-                  </span>
-                  <span className="font-sans font-bold tracking-tight text-sm sm:text-base text-emerald-700">
-                    {COMPANY_INFO.whatsapp}
-                  </span>
-                </div>
-              </a>
-            </div>
-
-            {/* Studio Address & Schedule */}
-            <div className="bg-luxury-card rounded-2xl p-5 border border-luxury-gold/30 shadow-luxury space-y-3.5">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
-                    Studio & Workshop Address
-                  </h4>
-                  <p className="text-xs sm:text-sm text-luxury-muted mt-0.5 font-medium leading-relaxed">
-                    {COMPANY_INFO.address.full}
-                  </p>
-                </div>
+          {/* Quick Contact Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a
+              href={`tel:${COMPANY_INFO.phoneRaw}`}
+              className="luxury-card rounded-2xl p-5 flex items-center gap-4 group border border-luxury-gold/30 hover:border-luxury-gold shadow-md"
+            >
+              <div className="w-12 h-12 rounded-xl bg-luxury-walnut text-luxury-gold flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-luxury-gold group-hover:text-luxury-walnut transition-all">
+                <Phone className="w-5 h-5" />
               </div>
-
-              <div className="flex items-center gap-3 pt-3 border-t border-luxury-border">
-                <div className="w-8 h-8 rounded-lg bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
-                    Visiting & Consultation Hours
-                  </h4>
-                  <p className="text-xs text-luxury-muted mt-0.5 font-medium">
-                    {COMPANY_INFO.businessHours} (Monday – Sunday)
-                  </p>
-                </div>
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-luxury-muted block">
+                  Direct Phone
+                </span>
+                <span className="font-sans font-bold tracking-tight text-base sm:text-lg text-luxury-walnut group-hover:text-luxury-gold-dark">
+                  {COMPANY_INFO.phone}
+                </span>
               </div>
+            </a>
 
-              <div className="flex items-center gap-3 pt-3 border-t border-luxury-border">
-                <div className="w-8 h-8 rounded-lg bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
-                    Email Inquiry
-                  </h4>
-                  <a
-                    href={`mailto:${COMPANY_INFO.email}`}
-                    className="text-xs text-luxury-muted hover:text-luxury-gold font-medium truncate block"
-                  >
-                    {COMPANY_INFO.email}
-                  </a>
-                </div>
+            <a
+              href={getGeneralWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="luxury-card rounded-2xl p-5 flex items-center gap-4 group border border-emerald-500/30 hover:border-emerald-500 shadow-md"
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 shadow-sm">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-luxury-muted block">
+                  WhatsApp Chat
+                </span>
+                <span className="font-sans font-bold tracking-tight text-base sm:text-lg text-emerald-700">
+                  {COMPANY_INFO.whatsapp}
+                </span>
+              </div>
+            </a>
+
+            <a
+              href={`mailto:${COMPANY_INFO.email}`}
+              className="luxury-card rounded-2xl p-5 flex items-center gap-4 group border border-luxury-gold/30 hover:border-luxury-gold shadow-md sm:col-span-2 lg:col-span-1"
+            >
+              <div className="w-12 h-12 rounded-xl bg-luxury-gold/20 text-luxury-gold flex items-center justify-center shrink-0 group-hover:scale-105 transition-all">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold uppercase tracking-wider text-luxury-muted block">
+                  Email Inquiry
+                </span>
+                <span className="font-medium text-sm text-luxury-walnut group-hover:text-luxury-gold-dark truncate block">
+                  {COMPANY_INFO.email}
+                </span>
+              </div>
+            </a>
+          </div>
+
+          {/* Studio Address & Schedule */}
+          <div className="bg-luxury-card rounded-2xl p-6 border border-luxury-gold/30 shadow-luxury grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0 mt-0.5">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
+                  Studio & Workshop Address
+                </h4>
+                <p className="text-xs sm:text-sm text-luxury-muted mt-1 font-medium leading-relaxed">
+                  {COMPANY_INFO.address.full}
+                </p>
               </div>
             </div>
 
-            {/* Interactive Google Map Embed */}
-            <GoogleMapEmbed />
-
+            <div className="flex items-start gap-3.5 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-luxury-border md:pl-6">
+              <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0 mt-0.5">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
+                  Visiting & Consultation Hours
+                </h4>
+                <p className="text-xs sm:text-sm text-luxury-muted mt-1 font-medium leading-relaxed">
+                  {COMPANY_INFO.businessHours} (Monday – Sunday)
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Right Column: Consultation Booking Form */}
-          <div className="lg:col-span-7">
-            <ConsultationForm />
-          </div>
+          {/* Interactive Google Map Embed */}
+          <GoogleMapEmbed />
 
         </div>
+
       </section>
 
       {/* 3. What to Expect from a Site Visit */}
