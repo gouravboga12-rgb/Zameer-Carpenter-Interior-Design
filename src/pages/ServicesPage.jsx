@@ -9,6 +9,8 @@ import SectionHeading from '../components/ui/SectionHeading';
 import { SERVICES_DATA } from '../data/servicesData';
 import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
 
+import { useAdminData } from '../context/AdminDataContext';
+
 const SERVICE_ICONS = {
   Home,
   CookingPot,
@@ -19,10 +21,12 @@ const SERVICE_ICONS = {
 };
 
 export default function ServicesPage() {
-  const [selectedServiceId, setSelectedServiceId] = useState(SERVICES_DATA[0].id);
+  const { services } = useAdminData();
+  const servicesList = services && services.length > 0 ? services : SERVICES_DATA;
+  const [selectedServiceId, setSelectedServiceId] = useState(servicesList[0]?.id || 'complete-home-interiors');
   const [expandedScopes, setExpandedScopes] = useState({});
 
-  const activeService = SERVICES_DATA.find((s) => s.id === selectedServiceId) || SERVICES_DATA[0];
+  const activeService = servicesList.find((s) => s.id === selectedServiceId) || servicesList[0];
 
   const toggleScope = (serviceId) => {
     setExpandedScopes((prev) => ({
@@ -44,7 +48,7 @@ export default function ServicesPage() {
 
         {/* 6 Tab Buttons (Desktop & Tablet Grid Only) */}
         <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-          {SERVICES_DATA.map((service) => {
+          {servicesList.map((service) => {
             const Icon = SERVICE_ICONS[service.iconName] || Home;
             const isActive = service.id === selectedServiceId;
 
@@ -164,7 +168,7 @@ export default function ServicesPage() {
 
         {/* MOBILE VIEW: Render All 6 Services Vertically with View More Toggle */}
         <div className="flex flex-col gap-8 sm:hidden">
-          {SERVICES_DATA.map((service, index) => {
+          {servicesList.map((service, index) => {
             const isExpanded = !!expandedScopes[service.id];
             const visibleScopeItems = isExpanded
               ? service.subservices

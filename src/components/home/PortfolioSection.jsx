@@ -5,21 +5,25 @@ import { Eye, MapPin, Sparkles, MessageSquare, Layers, Play, Film, CheckCircle2,
 import SectionHeading from '../ui/SectionHeading';
 import PortfolioModal from './PortfolioModal';
 import { PORTFOLIO_CATEGORIES, PORTFOLIO_PROJECTS, REAL_PROJECT_VIDEOS } from '../../data/portfolioData';
+import { useAdminData } from '../../context/AdminDataContext';
 
 export default function PortfolioSection({ isHomePage = false }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeModalProject, setActiveModalProject] = useState(null);
+  const { projects } = useAdminData();
 
   // Combined projects and videos
   const allMediaItems = useMemo(() => {
-    return [...PORTFOLIO_PROJECTS, ...REAL_PROJECT_VIDEOS];
-  }, []);
+    return projects && projects.length > 0
+      ? projects
+      : [...PORTFOLIO_PROJECTS, ...REAL_PROJECT_VIDEOS];
+  }, [projects]);
 
   // Filter items smoothly
   const filteredItems = useMemo(() => {
     let items = allMediaItems;
     if (selectedCategory === 'Video Walkthroughs') {
-      items = REAL_PROJECT_VIDEOS;
+      items = allMediaItems.filter((p) => p.type === 'video' || !!p.videoUrl);
     } else if (selectedCategory !== 'All') {
       items = allMediaItems.filter((p) => p.category === selectedCategory);
     }

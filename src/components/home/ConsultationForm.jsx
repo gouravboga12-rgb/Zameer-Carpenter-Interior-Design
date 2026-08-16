@@ -3,6 +3,7 @@ import { Send, CheckCircle2, AlertCircle, Loader2, MessageSquare, Phone } from '
 import { getConsultationWhatsAppUrl } from '../../utils/whatsapp';
 import { SERVICES_DATA } from '../../data/servicesData';
 import { PROPERTY_TYPES } from '../../data/pricingConfig';
+import { useAdminData } from '../../context/AdminDataContext';
 
 export default function ConsultationForm() {
   const [formData, setFormData] = useState({
@@ -45,6 +46,8 @@ export default function ConsultationForm() {
     }
   };
 
+  const { submitContactInquiry } = useAdminData();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -53,18 +56,14 @@ export default function ConsultationForm() {
     setErrorMessage('');
 
     try {
-      // Backend Readiness: Prepared for Node.js endpoint '/api/enquiries'
-      // Simulating a structured network call with guaranteed graceful fallback
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Store in localStorage as robust local audit
-      const existing = JSON.parse(localStorage.getItem('zameer_enquiries') || '[]');
-      existing.push({
-        ...formData,
-        submittedAt: new Date().toISOString(),
-        id: 'ENQ-' + Date.now()
+      // Record inquiry in Supabase & Admin Panel, and trigger WhatsApp redirection
+      await submitContactInquiry({
+        name: formData.name,
+        phone: formData.phone,
+        serviceTitle: formData.service,
+        propertyType: formData.spaceType,
+        notes: formData.message
       });
-      localStorage.setItem('zameer_enquiries', JSON.stringify(existing));
 
       setIsSuccess(true);
     } catch (err) {
