@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    background-color: #FDFBF7;
+    color: #2B231D;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Playfair Display', 'Cinzel', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .font-cinzel {
+    font-family: 'Cinzel', Georgia, serif;
+  }
+}
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F0EA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5A880;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Luxury Glassmorphism */
+.glass-luxury {
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.glass-dark {
+  background: rgba(30, 27, 24, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+}
+
+/* Subtle Gold Text & Border Utilities */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #B89025 60%, #8A6812 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.6), transparent);
+}
+
+.gold-divider-left {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.7), transparent);
+}
+
+/* Card Glow and Hover Effects */
+.luxury-card {
+  background: #FFFDF9;
+  border: 1px solid rgba(231, 223, 198, 0.7);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 16px 36px -12px rgba(212, 175, 55, 0.16), 0 8px 16px -6px rgba(30, 27, 24, 0.06);
+}
+
+/* Safe area for mobile fixed bottom bar */
+.safe-bottom-space {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
