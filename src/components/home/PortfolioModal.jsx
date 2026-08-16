@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Layers, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Play, Film } from 'lucide-react';
-import { getPortfolioInquiryWhatsAppUrl } from '../../utils/whatsapp';
+import { X, MapPin, ChevronLeft, ChevronRight, Film } from 'lucide-react';
 
 export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const videoRef = useRef(null);
@@ -18,10 +17,11 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose, onPrev, onNext, hasPrev, hasNext]);
 
-  // Pause video on project switch or close
+  // Handle video autoplay with muted default
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
+      videoRef.current.muted = true;
       videoRef.current.play().catch(() => {});
     }
   }, [project]);
@@ -33,7 +33,7 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -49,20 +49,20 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative z-10 w-full max-w-4xl bg-luxury-card rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/40 max-h-[92vh] flex flex-col"
+            className="relative z-10 w-full max-w-4xl bg-luxury-card rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/40 max-h-[95vh] flex flex-col"
           >
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-luxury-walnut text-[#FDFBF7] flex items-center justify-between border-b border-luxury-gold/20">
-              <div className="flex items-center gap-2.5">
+            <div className="p-3.5 sm:p-4 bg-luxury-walnut text-[#FDFBF7] flex items-center justify-between border-b border-luxury-gold/20 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 {isVideo ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-wider shrink-0">
                     <Film className="w-3 h-3" />
                     <span>Video Walkthrough</span>
                   </span>
                 ) : (
-                  <span className="w-2 h-2 rounded-full bg-luxury-gold"></span>
+                  <span className="w-2 h-2 rounded-full bg-luxury-gold shrink-0" />
                 )}
-                <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold font-cinzel">
+                <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold font-cinzel truncate">
                   {project.category}
                 </span>
               </div>
@@ -71,17 +71,17 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
               <button
                 onClick={onClose}
                 aria-label="Close media modal"
-                className="p-2 rounded-full bg-white/10 hover:bg-luxury-gold hover:text-luxury-walnut transition-colors text-white"
+                className="p-1.5 rounded-full bg-white/10 hover:bg-luxury-gold hover:text-luxury-walnut transition-colors text-white shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="overflow-y-auto p-4 sm:p-6 space-y-6">
+            <div className="overflow-y-auto p-3 sm:p-5 space-y-3.5">
               
-              {/* Media Display Area (Video or Image) */}
-              <div className="relative rounded-2xl overflow-hidden shadow-lg aspect-video max-h-[480px] bg-black flex items-center justify-center">
+              {/* Media Display Area (Fully Visible on Mobile & Responsive) */}
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg bg-black flex items-center justify-center min-h-[200px] max-h-[60vh] sm:max-h-[68vh] w-full">
                 {isVideo ? (
                   <video
                     ref={videoRef}
@@ -89,14 +89,15 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                     poster={project.poster}
                     controls
                     autoPlay
+                    muted
                     playsInline
-                    className="w-full h-full object-contain bg-black"
+                    className="w-full h-auto max-h-[60vh] sm:max-h-[68vh] object-contain mx-auto bg-black"
                   />
                 ) : (
                   <img
                     src={project.image}
                     alt={project.title}
-                    className="w-full h-full object-contain bg-black"
+                    className="w-full h-auto max-h-[60vh] sm:max-h-[68vh] object-contain mx-auto bg-black"
                   />
                 )}
 
@@ -108,7 +109,7 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                       onPrev();
                     }}
                     aria-label="Previous project"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
+                    className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -122,51 +123,29 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                       onNext();
                     }}
                     aria-label="Next project"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-luxury-gold hover:text-luxury-walnut text-white backdrop-blur-md transition-colors border border-white/20 z-20"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 )}
               </div>
 
-              {/* Project Specification Details */}
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h3 className="font-heading text-2xl font-bold text-luxury-walnut">
+              {/* Single-Line Clean Title & One-Line Description */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                  <h3 className="font-heading text-base sm:text-xl font-bold text-luxury-walnut truncate">
                     {project.title}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-xs text-luxury-muted">
-                    <MapPin className="w-4 h-4 text-luxury-gold shrink-0" />
+                  <div className="flex items-center gap-1 text-xs text-luxury-muted shrink-0">
+                    <MapPin className="w-3.5 h-3.5 text-luxury-gold shrink-0" />
                     <span>{project.location}</span>
                   </div>
                 </div>
 
-                <p className="text-sm text-luxury-muted leading-relaxed">
+                {/* Clean 1-Line Description */}
+                <p className="text-xs sm:text-sm text-luxury-muted line-clamp-1 leading-relaxed">
                   {project.description}
                 </p>
-
-                {/* Materials & Scope Pill Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="p-3.5 rounded-xl bg-luxury-surface/80 border border-luxury-border">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5 mb-1">
-                      <Layers className="w-3.5 h-3.5 text-luxury-gold" />
-                      Materials & Hardware Specs
-                    </span>
-                    <p className="text-xs text-luxury-charcoal font-medium">
-                      {project.materials}
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-luxury-surface/80 border border-luxury-border">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5 mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-luxury-gold" />
-                      Turnkey Execution Scope
-                    </span>
-                    <p className="text-xs text-luxury-charcoal font-medium">
-                      {project.scope}
-                    </p>
-                  </div>
-                </div>
               </div>
 
             </div>
