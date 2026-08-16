@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Wrench, MessageSquare, PhoneCall, FolderGit2, Settings, 
-  TrendingUp, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Phone, ShieldCheck, Database, Cloud
+  TrendingUp, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Phone, ShieldCheck
 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 
@@ -31,7 +31,7 @@ export default function AdminDashboardOverview({ onNavigate }) {
             Welcome, <span className="text-luxury-gold">Zameer Interior Admin</span>
           </h2>
           <p className="text-xs sm:text-sm text-gray-300 max-w-xl leading-relaxed">
-            Manage service verticals, process client inquiries, upload high-res project media via Cloudinary, and update live contact details.
+            Manage service verticals, process client inquiries, upload high-res project media, and update live contact details.
           </p>
         </div>
 
@@ -142,58 +142,35 @@ export default function AdminDashboardOverview({ onNavigate }) {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-heading text-3xl font-bold text-luxury-walnut">{projects.length}</span>
-            <span className="text-xs text-luxury-muted font-medium">Cloudinary Engine</span>
+            <span className="text-xs text-luxury-muted font-medium">Media Gallery</span>
           </div>
           <span className="text-[11px] text-luxury-muted mt-1 block">Photos, walkthroughs & 3D renders</span>
         </div>
 
       </div>
 
-      {/* Backend Integration & Live Settings Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-luxury-card p-5 rounded-2xl border border-luxury-border shadow-sm space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-luxury-charcoal">
-            <Database className="w-4 h-4 text-luxury-gold" />
-            <span>Supabase Database Status</span>
+      {/* Live Contact Settings Strip */}
+      <div className="bg-luxury-card p-5 rounded-2xl border border-luxury-border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+            <Phone className="w-5 h-5" />
           </div>
-          <p className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>Connected & Live</span>
-          </p>
-          <span className="text-[11px] text-luxury-muted block font-mono truncate">
-            https://nvrjahggaxgjuzapadfe.supabase.co
-          </span>
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal">
+              Live Phone & WhatsApp Settings
+            </h4>
+            <p className="text-xs font-bold text-luxury-walnut mt-0.5">
+              Phone: {settings.phone} | WhatsApp: {settings.whatsapp}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-luxury-card p-5 rounded-2xl border border-luxury-border shadow-sm space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-luxury-charcoal">
-            <Cloud className="w-4 h-4 text-blue-600" />
-            <span>Cloudinary Media Engine</span>
-          </div>
-          <p className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Preset: Zameer_preset</span>
-          </p>
-          <span className="text-[11px] text-luxury-muted block font-mono">
-            Cloud: lyjntirb
-          </span>
-        </div>
-
-        <div className="bg-luxury-card p-5 rounded-2xl border border-luxury-border shadow-sm space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-luxury-charcoal">
-            <Phone className="w-4 h-4 text-emerald-600" />
-            <span>Live Contact Settings</span>
-          </div>
-          <p className="text-xs font-bold text-luxury-walnut truncate">
-            {settings.phone} ({settings.whatsapp})
-          </p>
-          <button
-            onClick={() => onNavigate('settings')}
-            className="text-[11px] text-luxury-gold-dark font-bold hover:underline inline-flex items-center gap-1"
-          >
-            <span>Edit Phone/WhatsApp Settings ›</span>
-          </button>
-        </div>
+        <button
+          onClick={() => onNavigate('settings')}
+          className="px-4 py-2 rounded-xl bg-luxury-surface border border-luxury-border hover:bg-luxury-border text-luxury-walnut font-bold text-xs uppercase transition-colors shrink-0 cursor-pointer"
+        >
+          Edit Phone/WhatsApp Settings ›
+        </button>
       </div>
 
       {/* Recent Inquiries Feeds (2 Columns) */}
@@ -208,7 +185,7 @@ export default function AdminDashboardOverview({ onNavigate }) {
             </div>
             <button
               onClick={() => onNavigate('service-inquiries')}
-              className="text-xs font-bold text-luxury-gold-dark hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-luxury-gold-dark hover:underline flex items-center gap-0.5 cursor-pointer"
             >
               <span>View All ({serviceInquiries.length})</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -246,7 +223,7 @@ export default function AdminDashboardOverview({ onNavigate }) {
             </div>
             <button
               onClick={() => onNavigate('contact-inquiries')}
-              className="text-xs font-bold text-luxury-gold-dark hover:underline flex items-center gap-0.5"
+              className="text-xs font-bold text-luxury-gold-dark hover:underline flex items-center gap-0.5 cursor-pointer"
             >
               <span>View All ({contactInquiries.length})</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
