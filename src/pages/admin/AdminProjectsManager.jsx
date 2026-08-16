@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Film, Image as ImageIcon, Sparkles, Upload, Play, X, Save, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Film, Image as ImageIcon, Sparkles, Upload, Play, X, Save, MapPin, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 import { uploadToCloudinary } from '../../utils/cloudinary';
 import { PORTFOLIO_CATEGORIES } from '../../data/portfolioData';
@@ -9,6 +9,7 @@ export default function AdminProjectsManager() {
   const [editingProject, setEditingProject] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [selectedFilterCategory, setSelectedFilterCategory] = useState('All');
 
   // Form state
@@ -27,6 +28,7 @@ export default function AdminProjectsManager() {
   });
 
   const handleOpenCreate = (type = 'image') => {
+    setUploadError('');
     setFormData({
       title: '',
       category: 'Complete Interiors',
@@ -45,6 +47,7 @@ export default function AdminProjectsManager() {
   };
 
   const handleOpenEdit = (p) => {
+    setUploadError('');
     setEditingProject(p);
     setFormData({
       title: p.title,
@@ -66,6 +69,19 @@ export default function AdminProjectsManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadError('');
+
+    // File Size Validation
+    const isVideo = fieldName === 'videoUrl' || file.type.startsWith('video/');
+    const maxBytes = isVideo ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // 10MB for video, 5MB for photo
+    const maxMbText = isVideo ? '10MB' : '5MB';
+
+    if (file.size > maxBytes) {
+      const actualMb = (file.size / (1024 * 1024)).toFixed(1);
+      setUploadError(`File size (${actualMb}MB) exceeds the maximum limit of ${maxMbText}. Please select a smaller file.`);
+      return;
+    }
+
     setUploading(true);
     try {
       const url = await uploadToCloudinary(file);
@@ -75,7 +91,7 @@ export default function AdminProjectsManager() {
         ...(fieldName === 'image' && !prev.poster ? { poster: url } : {})
       }));
     } catch (err) {
-      alert('File upload failed: ' + err.message);
+      setUploadError('File upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -92,7 +108,7 @@ export default function AdminProjectsManager() {
         description: formData.description,
         materials: formData.materials,
         scope: formData.scope,
-        image: formData.image,
+        image: formData.image || formData.poster,
         type: formData.type,
         videoUrl: formData.videoUrl,
         poster: formData.poster || formData.image,
@@ -106,7 +122,7 @@ export default function AdminProjectsManager() {
         description: formData.description,
         materials: formData.materials,
         scope: formData.scope,
-        image: formData.image,
+        image: formData.image || formData.poster,
         type: formData.type,
         videoUrl: formData.videoUrl,
         poster: formData.poster || formData.image,
@@ -130,6 +146,8 @@ export default function AdminProjectsManager() {
     return true;
   });
 
+  const isVideoForm = formData.type === 'video';
+
   return (
     <div className="space-y-6">
       
@@ -140,14 +158,14 @@ export default function AdminProjectsManager() {
             Recent Projects & Media Library ({projects.length} Items)
           </h2>
           <p className="text-xs text-luxury-muted mt-0.5">
-            Upload new project photos and video walkthroughs directly via Cloudinary.
+            Upload new project photos (under 5MB) and video walkthroughs (under 10MB).
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleOpenCreate('image')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider shadow-md"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Upload Photo</span>
@@ -155,7 +173,7 @@ export default function AdminProjectsManager() {
           
           <button
             onClick={() => handleOpenCreate('video')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider shadow-md"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer transition-all"
           >
             <Film className="w-4 h-4" />
             <span>Upload Video</span>
@@ -169,7 +187,7 @@ export default function AdminProjectsManager() {
           <button
             key={cat}
             onClick={() => setSelectedFilterCategory(cat)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               selectedFilterCategory === cat
                 ? 'bg-luxury-walnut text-luxury-gold border border-luxury-gold shadow-sm'
                 : 'bg-luxury-card text-luxury-muted border border-luxury-border'
@@ -186,16 +204,24 @@ export default function AdminProjectsManager() {
           <div className="flex items-center justify-between border-b border-luxury-border pb-3">
             <h3 className="font-heading text-lg font-bold text-luxury-walnut flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-luxury-gold" />
-              <span>{editingProject ? `Edit Project: ${editingProject.title}` : `Add New ${formData.type === 'video' ? 'Video Tour' : 'Photo Project'}`}</span>
+              <span>{editingProject ? `Edit Project: ${editingProject.title}` : `Add New ${isVideoForm ? 'Video Tour' : 'Photo Project'}`}</span>
             </h3>
 
             <button
               onClick={() => { setIsCreating(false); setEditingProject(null); }}
-              className="p-1 rounded-full bg-luxury-surface hover:bg-luxury-border text-luxury-walnut"
+              className="p-1 rounded-full bg-luxury-surface hover:bg-luxury-border text-luxury-walnut cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Upload Error Alert */}
+          {uploadError && (
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>{uploadError}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -262,50 +288,90 @@ export default function AdminProjectsManager() {
               </div>
             </div>
 
-            {/* Media Upload Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
-                  Image URL / Cloudinary Photo Upload
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
-                  />
-                  <label className="px-3 py-3 rounded-xl bg-luxury-gold text-luxury-walnut font-bold text-xs uppercase cursor-pointer hover:bg-yellow-400 shrink-0">
-                    <span>{uploading ? '...' : 'Upload'}</span>
+            {/* Direct File Upload Component with File Size Notice */}
+            {!isVideoForm ? (
+              /* PHOTO UPLOAD BOX (Max 5MB) */
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-luxury-gold" />
+                    <span>Upload Project Photo</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-luxury-gold-dark bg-luxury-gold/15 px-2.5 py-0.5 rounded-full border border-luxury-gold/30">
+                    Max File Size: Under 5MB
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-luxury-surface border-2 border-dashed border-luxury-gold/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 text-luxury-gold-dark flex items-center justify-center shrink-0">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-luxury-walnut">
+                        {formData.image ? 'Photo Uploaded / Selected' : 'Choose an image file from your device'}
+                      </p>
+                      <span className="text-[11px] text-luxury-muted block">
+                        Supports JPG, PNG, WEBP (Max 5MB)
+                      </span>
+                    </div>
+                  </div>
+
+                  <label className="px-5 py-2.5 rounded-xl bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
+                    <span>{uploading ? 'Uploading Image...' : 'Browse Image File'}</span>
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
                   </label>
                 </div>
-              </div>
 
-              {formData.type === 'video' && (
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
-                    Video MP4 URL / Cloudinary Video Upload
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      required
-                      value={formData.videoUrl}
-                      onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                      placeholder="https://...mp4"
-                      className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
-                    />
-                    <label className="px-3 py-3 rounded-xl bg-red-600 text-white font-bold text-xs uppercase cursor-pointer hover:bg-red-700 shrink-0">
-                      <span>{uploading ? '...' : 'Upload MP4'}</span>
-                      <input type="file" accept="video/mp4,video/*" onChange={(e) => handleFileUpload(e, 'videoUrl')} className="hidden" />
-                    </label>
+                {formData.image && (
+                  <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/30 truncate">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">Image Ready: {formData.image}</span>
                   </div>
+                )}
+              </div>
+            ) : (
+              /* VIDEO TOUR UPLOAD BOX (Max 10MB) - NO IMAGE INPUT HERE */
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
+                    <Film className="w-4 h-4" />
+                    <span>Upload Video Tour MP4</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-red-700 bg-red-500/15 px-2.5 py-0.5 rounded-full border border-red-500/30">
+                    Max File Size: Under 10MB
+                  </span>
                 </div>
-              )}
-            </div>
+
+                <div className="p-4 rounded-2xl bg-red-500/5 border-2 border-dashed border-red-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-600 flex items-center justify-center shrink-0">
+                      <Film className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-luxury-walnut">
+                        {formData.videoUrl ? 'Video Tour Uploaded / Selected' : 'Choose an MP4 video walkthrough from your device'}
+                      </p>
+                      <span className="text-[11px] text-luxury-muted block">
+                        Supports MP4, MOV, WEBM (Max 10MB)
+                      </span>
+                    </div>
+                  </div>
+
+                  <label className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
+                    <span>{uploading ? 'Uploading Video...' : 'Browse MP4 Video'}</span>
+                    <input type="file" accept="video/mp4,video/*" onChange={(e) => handleFileUpload(e, 'videoUrl')} className="hidden" />
+                  </label>
+                </div>
+
+                {formData.videoUrl && (
+                  <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/30 truncate">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">Video Ready: {formData.videoUrl}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
@@ -325,13 +391,14 @@ export default function AdminProjectsManager() {
               <button
                 type="button"
                 onClick={() => { setIsCreating(false); setEditingProject(null); }}
-                className="px-5 py-2.5 rounded-xl bg-luxury-surface border border-luxury-border text-luxury-charcoal font-semibold text-xs uppercase"
+                className="px-5 py-2.5 rounded-xl bg-luxury-surface border border-luxury-border text-luxury-charcoal font-semibold text-xs uppercase cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md"
+                disabled={uploading}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md cursor-pointer disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Project</span>
@@ -353,7 +420,7 @@ export default function AdminProjectsManager() {
             >
               <div className="relative aspect-[4/3] bg-luxury-walnut overflow-hidden">
                 <img
-                  src={item.poster || item.image}
+                  src={item.poster || item.image || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85'}
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
@@ -363,7 +430,7 @@ export default function AdminProjectsManager() {
                   {isVideo ? (
                     <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-bold uppercase flex items-center gap-1">
                       <Play className="w-2.5 h-2.5 fill-current" />
-                      <span>Video</span>
+                      <span>Video Tour</span>
                     </span>
                   ) : (
                     <span className="px-2.5 py-1 rounded-full bg-luxury-walnut/90 border border-luxury-gold/50 text-luxury-gold text-[10px] font-bold uppercase">
@@ -392,14 +459,14 @@ export default function AdminProjectsManager() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleOpenEdit(item)}
-                    className="px-3 py-1.5 rounded-lg bg-luxury-walnut text-luxury-gold hover:bg-black font-bold text-xs uppercase flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-luxury-walnut text-luxury-gold hover:bg-black font-bold text-xs uppercase flex items-center gap-1 cursor-pointer"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Edit</span>
                   </button>
                   <button
                     onClick={() => handleDelete(item.id, item.title)}
-                    className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 hover:bg-red-500 hover:text-white font-bold text-xs uppercase flex items-center gap-1 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 hover:bg-red-500 hover:text-white font-bold text-xs uppercase flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Delete</span>
