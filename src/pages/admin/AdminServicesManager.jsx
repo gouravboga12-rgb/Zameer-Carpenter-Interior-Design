@@ -262,7 +262,7 @@ export default function AdminServicesManager() {
             key={srv.id}
             className="bg-luxury-card rounded-2xl overflow-hidden border border-luxury-border shadow-sm flex flex-col justify-between"
           >
-            <div className="relative aspect-[16/9] bg-luxury-walnut">
+            <div className="relative h-52 sm:h-60 w-full overflow-hidden bg-luxury-walnut">
               <img
                 src={srv.image}
                 alt={srv.title}
