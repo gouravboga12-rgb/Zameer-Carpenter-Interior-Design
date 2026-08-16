@@ -1,5 +1,5 @@
-export const CLOUDINARY_CLOUD_NAME = 'lyjntirb';
-export const CLOUDINARY_UPLOAD_PRESET = 'Zameer_preset';
+export const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'lyjntirb';
+export const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'Zameer_preset';
 
 /**
  * Uploads a File (image or video) directly to Cloudinary
@@ -26,7 +26,6 @@ export async function uploadToCloudinary(file) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.warn('Cloudinary upload returned non-OK status:', errorData);
-      // If signed/preset issue occurs, fallback to local FileReader data URL
       return await readFileAsDataURL(file);
     }
 
@@ -34,7 +33,6 @@ export async function uploadToCloudinary(file) {
     return data.secure_url || data.url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
-    // Fallback to local Data URL representation if network/preset upload fails
     return await readFileAsDataURL(file);
   }
 }
