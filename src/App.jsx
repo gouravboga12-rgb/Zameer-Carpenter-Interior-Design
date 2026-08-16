@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import SplashScreen from './components/layout/SplashScreen';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -18,6 +18,17 @@ import AdminPage from './pages/admin/AdminPage';
 function AppLayout() {
   const [splashFinished, setSplashFinished] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle Vercel SPA redirect fallbacks (e.g. ?redirect=/admin)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const redirectPath = params.get('redirect');
+    if (redirectPath) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [location, navigate]);
+
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (isAdminRoute) {
