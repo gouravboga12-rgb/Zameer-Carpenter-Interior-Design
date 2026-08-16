@@ -36,10 +36,10 @@ export default function AdminProjectsManager() {
       description: '',
       materials: 'IS:710 Marine Plywood & German Hardware',
       scope: 'Full Turnkey Execution',
-      image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85',
+      image: '',
       type: type,
-      videoUrl: type === 'video' ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4' : '',
-      poster: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85',
+      videoUrl: '',
+      poster: '',
       duration: '0:45'
     });
     setEditingProject(null);
