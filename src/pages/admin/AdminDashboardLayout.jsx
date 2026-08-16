@@ -5,6 +5,7 @@ import {
   FolderGit2, Settings, LogOut, ExternalLink, ShieldCheck, Sparkles, Menu, X
 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
+import AdminDashboardOverview from './AdminDashboardOverview';
 import AdminServicesManager from './AdminServicesManager';
 import AdminServiceInquiries from './AdminServiceInquiries';
 import AdminContactInquiries from './AdminContactInquiries';
@@ -13,7 +14,7 @@ import AdminSettingsManager from './AdminSettingsManager';
 
 export default function AdminDashboardLayout() {
   const { logoutAdmin, services, projects, serviceInquiries, contactInquiries } = useAdminData();
-  const [activeTab, setActiveTab] = useState('services');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false);
   const navigate = useNavigate();
 
@@ -22,7 +23,10 @@ export default function AdminDashboardLayout() {
     navigate('/');
   };
 
+  const totalInquiries = serviceInquiries.length + contactInquiries.length;
+
   const navItems = [
+    { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
     { id: 'services', label: 'Service Verticals (CRUD)', icon: Wrench, count: services.length },
     { id: 'service-inquiries', label: 'Service Form Inquiries', icon: MessageSquare, count: serviceInquiries.length },
     { id: 'contact-inquiries', label: 'Contact Page Inquiries', icon: PhoneCall, count: contactInquiries.length },
@@ -83,7 +87,7 @@ export default function AdminDashboardLayout() {
                     setActiveTab(item.id);
                     setSidebarOpenMobile(false);
                   }}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isActive
                       ? 'bg-luxury-gold text-luxury-walnut shadow-md scale-102'
                       : 'text-gray-300 hover:bg-white/10 hover:text-white'
@@ -119,7 +123,7 @@ export default function AdminDashboardLayout() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white text-xs font-bold transition-colors border border-red-500/30"
+            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white text-xs font-bold transition-colors border border-red-500/30 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -150,6 +154,7 @@ export default function AdminDashboardLayout() {
         </div>
 
         {/* Tab Content Renderer */}
+        {activeTab === 'dashboard' && <AdminDashboardOverview onNavigate={(tabId) => setActiveTab(tabId)} />}
         {activeTab === 'services' && <AdminServicesManager />}
         {activeTab === 'service-inquiries' && <AdminServiceInquiries />}
         {activeTab === 'contact-inquiries' && <AdminContactInquiries />}
