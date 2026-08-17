@@ -63,6 +63,8 @@ function AppLayout() {
           <Route path="/services/:serviceId/contact" element={<ServiceInquiryPage />} />
           <Route path="/projects" element={<RecentProjectsPage />} />
           <Route path="/recent-projects" element={<RecentProjectsPage />} />
+          <Route path="/portfolio" element={<RecentProjectsPage />} />
+          <Route path="/gallery" element={<RecentProjectsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* Fallback to Home */}
