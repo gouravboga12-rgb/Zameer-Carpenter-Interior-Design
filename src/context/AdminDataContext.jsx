@@ -12,6 +12,72 @@ export const ADMIN_CREDENTIALS = {
   password: 'Zameer@9390'
 };
 
+const DEFAULT_PROJECTS = [...PORTFOLIO_PROJECTS, ...REAL_PROJECT_VIDEOS];
+const DEFAULT_SERVICES = SERVICES_DATA;
+
+function getDeletedProjectIds() {
+  try {
+    return JSON.parse(localStorage.getItem('zameer_deleted_project_ids') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function getDeletedServiceIds() {
+  try {
+    return JSON.parse(localStorage.getItem('zameer_deleted_service_ids') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function mergeProjectsWithDefaults(customOrDbProjects, deletedIds = getDeletedProjectIds()) {
+  const deletedSet = new Set(deletedIds);
+  const map = new Map();
+
+  // 1. Add all baseline default 19 projects & videos
+  DEFAULT_PROJECTS.forEach(item => {
+    if (!deletedSet.has(item.id)) {
+      map.set(item.id, item);
+    }
+  });
+
+  // 2. Overlay custom or Supabase projects
+  (customOrDbProjects || []).forEach(item => {
+    if (!deletedSet.has(item.id)) {
+      map.set(item.id, item);
+    }
+  });
+
+  // Sort: custom projects (starting with 'proj_') appear first, followed by baseline projects
+  return Array.from(map.values()).sort((a, b) => {
+    const isACustom = String(a.id).startsWith('proj_');
+    const isBCustom = String(b.id).startsWith('proj_');
+    if (isACustom && !isBCustom) return -1;
+    if (!isACustom && isBCustom) return 1;
+    return 0;
+  });
+}
+
+function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedServiceIds()) {
+  const deletedSet = new Set(deletedIds);
+  const map = new Map();
+
+  DEFAULT_SERVICES.forEach(item => {
+    if (!deletedSet.has(item.id)) {
+      map.set(item.id, item);
+    }
+  });
+
+  (customOrDbServices || []).forEach(item => {
+    if (!deletedSet.has(item.id)) {
+      map.set(item.id, item);
+    }
+  });
+
+  return Array.from(map.values()).sort((a, b) => (a.numericId || 99) - (b.numericId || 99));
+}
+
 function mergeInquiries(localList, remoteList) {
   const map = new Map();
   (remoteList || []).forEach(item => map.set(item.id || item.phone + '_' + item.created_at, item));
@@ -33,13 +99,15 @@ export function AdminDataProvider({ children }) {
   // 2. Dynamic Services State
   const [services, setServices] = useState(() => {
     const saved = localStorage.getItem('zameer_services_cache');
-    return saved ? JSON.parse(saved) : SERVICES_DATA;
+    const parsed = saved ? JSON.parse(saved) : [];
+    return mergeServicesWithDefaults(parsed);
   });
 
   // 3. Dynamic Projects & Videos State
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('zameer_projects_cache');
-    return saved ? JSON.parse(saved) : [...PORTFOLIO_PROJECTS, ...REAL_PROJECT_VIDEOS];
+    const parsed = saved ? JSON.parse(saved) : [];
+    return mergeProjectsWithDefaults(parsed);
   });
 
   // 4. Inquiries State
@@ -75,7 +143,7 @@ export function AdminDataProvider({ children }) {
     try {
       // Sync Services
       const { data: dbServices, error: sErr } = await supabase.from('services').select('*').order('numeric_id', { ascending: true });
-      if (!sErr && dbServices && dbServices.length > 0) {
+      if (!sErr && dbServices) {
         const formatted = dbServices.map(s => ({
           id: s.id,
           numericId: s.numeric_id,
@@ -88,13 +156,14 @@ export function AdminDataProvider({ children }) {
           subservices: s.subservices || [],
           features: s.features || []
         }));
-        setServices(formatted);
-        localStorage.setItem('zameer_services_cache', JSON.stringify(formatted));
+        const mergedServices = mergeServicesWithDefaults(formatted);
+        setServices(mergedServices);
+        localStorage.setItem('zameer_services_cache', JSON.stringify(mergedServices));
       }
 
       // Sync Projects
       const { data: dbProjects, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-      if (!pErr && dbProjects && dbProjects.length > 0) {
+      if (!pErr && dbProjects) {
         const formattedP = dbProjects.map(p => ({
           id: p.id,
           title: p.title,
@@ -109,8 +178,9 @@ export function AdminDataProvider({ children }) {
           poster: p.poster,
           duration: p.duration
         }));
-        setProjects(formattedP);
-        localStorage.setItem('zameer_projects_cache', JSON.stringify(formattedP));
+        const mergedProjects = mergeProjectsWithDefaults(formattedP);
+        setProjects(mergedProjects);
+        localStorage.setItem('zameer_projects_cache', JSON.stringify(mergedProjects));
       }
 
       // Sync Service Inquiries smoothly without overwriting local submissions
@@ -333,6 +403,11 @@ export function AdminDataProvider({ children }) {
   };
 
   const deleteService = async (id) => {
+    const deletedIds = getDeletedServiceIds();
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem('zameer_deleted_service_ids', JSON.stringify(deletedIds));
+    }
     const updated = services.filter(s => s.id !== id);
     setServices(updated);
     localStorage.setItem('zameer_services_cache', JSON.stringify(updated));
@@ -362,9 +437,11 @@ export function AdminDataProvider({ children }) {
       duration: newProject.duration || '0:45'
     };
 
-    const updated = [projObj, ...projects];
-    setProjects(updated);
-    localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+    setProjects(prev => {
+      const updated = [projObj, ...prev.filter(p => p.id !== pId)];
+      localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+      return updated;
+    });
 
     try {
       await supabase.from('projects').upsert([{
@@ -415,9 +492,16 @@ export function AdminDataProvider({ children }) {
   };
 
   const deleteProject = async (id) => {
-    const updated = projects.filter(p => p.id !== id);
-    setProjects(updated);
-    localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+    const deletedIds = getDeletedProjectIds();
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem('zameer_deleted_project_ids', JSON.stringify(deletedIds));
+    }
+    setProjects(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+      return updated;
+    });
 
     try {
       await supabase.from('projects').delete().eq('id', id);
