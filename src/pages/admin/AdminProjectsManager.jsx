@@ -291,7 +291,7 @@ export default function AdminProjectsManager() {
             {/* Direct File Upload Component with File Size Notice */}
             {!isVideoForm ? (
               /* PHOTO UPLOAD BOX (Max 5MB) */
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
                     <ImageIcon className="w-4 h-4 text-luxury-gold" />
@@ -302,31 +302,62 @@ export default function AdminProjectsManager() {
                   </span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-luxury-surface border-2 border-dashed border-luxury-gold/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 text-luxury-gold-dark flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5" />
+                {formData.image ? (
+                  <div className="p-4 rounded-2xl bg-luxury-surface border-2 border-luxury-gold/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-luxury-walnut shrink-0 border border-luxury-gold/40 shadow-sm relative group">
+                        <img
+                          src={formData.image}
+                          alt="Project Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-luxury-walnut flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Photo Uploaded & Ready</span>
+                        </p>
+                        <span className="text-[11px] text-luxury-muted block truncate max-w-xs sm:max-w-md mt-0.5 font-mono">
+                          {formData.image.startsWith('data:') ? 'Local file uploaded' : formData.image}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-luxury-walnut">
-                        {formData.image ? 'Photo Uploaded / Selected' : 'Choose an image file from your device'}
-                      </p>
-                      <span className="text-[11px] text-luxury-muted block">
-                        Supports JPG, PNG, WEBP (Max 5MB)
-                      </span>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="px-4 py-2.5 rounded-xl bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-bold text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-transform active:scale-95">
+                        <span>{uploading ? 'Uploading...' : 'Change Photo'}</span>
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, image: '', poster: '' }))}
+                        className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 transition-colors cursor-pointer"
+                        title="Remove Photo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-luxury-surface border-2 border-dashed border-luxury-gold/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-luxury-gold/20 text-luxury-gold-dark flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-luxury-walnut">
+                          Choose a project photo from your device
+                        </p>
+                        <span className="text-[11px] text-luxury-muted block">
+                          Supports JPG, PNG, WEBP (Max 5MB)
+                        </span>
+                      </div>
+                    </div>
 
-                  <label className="px-5 py-2.5 rounded-xl bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
-                    <span>{uploading ? 'Uploading Image...' : 'Browse Image File'}</span>
-                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
-                  </label>
-                </div>
-
-                {formData.image && (
-                  <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/30 truncate">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate">Image Ready: {formData.image}</span>
+                    <label className="px-5 py-2.5 rounded-xl bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
+                      <span>{uploading ? 'Uploading Image...' : 'Browse Image File'}</span>
+                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+                    </label>
                   </div>
                 )}
               </div>
