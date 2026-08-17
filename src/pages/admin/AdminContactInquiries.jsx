@@ -201,12 +201,12 @@ export default function AdminContactInquiries() {
 
                 {/* Consultation Message */}
                 {item.notes && (
-                  <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1">
+                  <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1 overflow-hidden">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-luxury-gold-dark">
                       <FileText className="w-3.5 h-3.5" />
                       <span>Consultation Message & Notes:</span>
                     </div>
-                    <p className="text-xs text-luxury-walnut leading-relaxed">
+                    <p className="text-xs text-luxury-walnut leading-relaxed whitespace-pre-line break-words break-all [overflow-wrap:anywhere] select-text">
                       {item.notes}
                     </p>
                   </div>

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   MessageSquare, Phone, MapPin, Calendar, Trash2, Search, 
   CheckCircle, Home, Send, MessageCircle, Mail, Sparkles,
-  ExternalLink, UserCheck, Clock, FileText, CheckCircle2
+  ExternalLink, UserCheck, Clock, FileText, CheckCircle2,
+  Eye, Download, X, ZoomIn
 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 import { buildWhatsAppUrl } from '../../utils/whatsapp';
@@ -11,6 +12,27 @@ export default function AdminServiceInquiries() {
   const { serviceInquiries, updateInquiryStatus, deleteInquiry } = useAdminData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [previewModal, setPreviewModal] = useState(null);
+
+  const openAttachmentInNewTab = (url) => {
+    if (!url) return;
+    if (url.startsWith('data:')) {
+      fetch(url)
+        .then(res => res.blob())
+        .then(blob => {
+          const blobUrl = URL.createObjectURL(blob);
+          window.open(blobUrl, '_blank');
+        })
+        .catch(() => {
+          const win = window.open('');
+          if (win) {
+            win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+          }
+        });
+    } else {
+      window.open(url, '_blank');
+    }
+  };
 
   const filteredInquiries = serviceInquiries.filter(item => {
     const term = searchTerm.toLowerCase();
@@ -145,11 +167,11 @@ export default function AdminServiceInquiries() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-luxury-surface/70 p-4 rounded-2xl border border-luxury-border">
                   
                   {/* Customer Name */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 overflow-hidden">
                     <span className="text-[10px] font-bold uppercase text-luxury-muted tracking-wider block">
                       Customer Name
                     </span>
-                    <h3 className="font-heading text-sm font-bold text-luxury-walnut truncate">
+                    <h3 className="font-heading text-sm font-bold text-luxury-walnut truncate break-words break-all">
                       {item.name || 'Anonymous'}
                     </h3>
                   </div>
@@ -169,14 +191,14 @@ export default function AdminServiceInquiries() {
                   </div>
 
                   {/* Email Address */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 overflow-hidden">
                     <span className="text-[10px] font-bold uppercase text-luxury-muted tracking-wider block">
                       Email Address
                     </span>
                     {(item.email || (item.notes && item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1])) ? (
                       <a
                         href={`mailto:${item.email || item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1]}`}
-                        className="text-xs text-luxury-charcoal hover:underline flex items-center gap-1.5 truncate"
+                        className="text-xs text-luxury-charcoal hover:underline flex items-center gap-1.5 truncate break-words break-all"
                         title={item.email || item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1]}
                       >
                         <Mail className="w-3.5 h-3.5 text-luxury-gold shrink-0" />
@@ -188,11 +210,11 @@ export default function AdminServiceInquiries() {
                   </div>
 
                   {/* Property Address */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 overflow-hidden">
                     <span className="text-[10px] font-bold uppercase text-luxury-muted tracking-wider block">
                       Property Address / Location
                     </span>
-                    <span className="text-xs text-luxury-walnut font-medium flex items-start gap-1.5 line-clamp-2" title={item.location}>
+                    <span className="text-xs text-luxury-walnut font-medium flex items-start gap-1.5 break-words break-all [overflow-wrap:anywhere]" title={item.location}>
                       <MapPin className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
                       <span>{item.location || 'Direct Inquiry'}</span>
                     </span>
@@ -208,24 +230,31 @@ export default function AdminServiceInquiries() {
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
                       {Object.entries(item.custom_fields).map(([label, val]) => {
-                        const isFile = typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:image'));
+                        const isFile = typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:image') || val.startsWith('data:application'));
                         return (
-                          <div key={label} className="p-2 rounded-xl bg-white border border-luxury-border space-y-1">
-                            <span className="text-[10px] font-bold text-luxury-muted block uppercase tracking-wider">{label}</span>
+                          <div key={label} className="p-3 rounded-xl bg-white border border-luxury-border space-y-1.5 overflow-hidden">
+                            <span className="text-[10px] font-bold text-luxury-muted block uppercase tracking-wider truncate">{label}</span>
                             {isFile ? (
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={val}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-bold text-luxury-gold-dark hover:underline"
+                              <div className="flex items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewModal({ title: label, url: val })}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-luxury-walnut hover:bg-black text-luxury-gold text-xs font-bold cursor-pointer transition-colors shadow-2xs"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>View File / Image</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openAttachmentInNewTab(val)}
+                                  className="p-1.5 rounded-lg bg-luxury-surface hover:bg-luxury-border text-luxury-charcoal text-xs transition-colors cursor-pointer"
+                                  title="Open in new window"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5" />
-                                  <span>View Uploaded File / Floor Plan</span>
-                                </a>
+                                </button>
                               </div>
                             ) : (
-                              <span className="font-semibold text-luxury-walnut block truncate" title={String(val)}>{String(val)}</span>
+                              <span className="font-semibold text-luxury-walnut block break-words break-all [overflow-wrap:anywhere]" title={String(val)}>{String(val)}</span>
                             )}
                           </div>
                         );
@@ -236,12 +265,12 @@ export default function AdminServiceInquiries() {
 
                 {/* Project Notes / Dimensions */}
                 {(item.notes && item.notes.replace(/\[Email:\s*([^\]]+)\]/g, '').trim()) && (
-                  <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1">
+                  <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1 overflow-hidden">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-luxury-gold-dark">
                       <FileText className="w-3.5 h-3.5" />
                       <span>Project Notes & Dimensions:</span>
                     </div>
-                    <p className="text-xs text-luxury-walnut leading-relaxed whitespace-pre-line">
+                    <p className="text-xs text-luxury-walnut leading-relaxed whitespace-pre-line break-words break-all [overflow-wrap:anywhere] overflow-hidden select-text">
                       {item.notes.replace(/\[Email:\s*([^\]]+)\]/g, '').trim()}
                     </p>
                   </div>
@@ -294,6 +323,71 @@ export default function AdminServiceInquiries() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Attachment Lightbox Modal */}
+      {previewModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setPreviewModal(null)}
+        >
+          <div 
+            className="bg-luxury-card max-w-3xl w-full max-h-[90vh] rounded-3xl border-2 border-luxury-gold/40 shadow-2xl overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-luxury-border flex items-center justify-between bg-luxury-surface">
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-luxury-gold" />
+                <h3 className="font-heading text-base font-bold text-luxury-walnut">
+                  {previewModal.title || 'Uploaded Document / Floor Plan'}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewModal.url}
+                  download={`${(previewModal.title || 'attachment').toLowerCase().replace(/\s+/g, '_')}.jpg`}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-luxury-walnut text-luxury-gold text-xs font-bold hover:bg-black transition-colors cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => openAttachmentInNewTab(previewModal.url)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white border border-luxury-border text-luxury-charcoal text-xs font-bold hover:bg-luxury-surface transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open in Tab</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewModal(null)}
+                  className="p-1.5 rounded-xl bg-luxury-border hover:bg-red-500 hover:text-white text-luxury-charcoal transition-colors cursor-pointer ml-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 overflow-auto flex-1 flex items-center justify-center bg-black/5 min-h-[300px]">
+              {previewModal.url.startsWith('data:image') || previewModal.url.includes('cloudinary') || previewModal.url.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
+                <img
+                  src={previewModal.url}
+                  alt={previewModal.title}
+                  className="max-h-[70vh] w-auto max-w-full object-contain rounded-2xl shadow-md"
+                />
+              ) : (
+                <iframe
+                  src={previewModal.url}
+                  title={previewModal.title}
+                  className="w-full h-[65vh] rounded-2xl border border-luxury-border"
+                />
+              )}
+            </div>
+          </div>
         </div>
       )}
 
