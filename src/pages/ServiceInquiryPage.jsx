@@ -81,26 +81,31 @@ export default function ServiceInquiryPage() {
   const currentService = servicesList.find((s) => s.id === serviceId) || servicesList[0];
   const ServiceIcon = SERVICE_ICONS[currentService?.iconName] || Home;
 
-  const propertyTypes = (currentService?.propertyTypes && currentService.propertyTypes.length > 0)
-    ? currentService.propertyTypes
-    : (SERVICE_PROPERTY_TYPES[currentService?.id] || [
-        '1 BHK Apartment',
-        '2 BHK Apartment',
-        '3 BHK Apartment',
-        '4 BHK / Penthouse',
-        'Villa / Duplex House',
-        'Independent House',
-        'Commercial / Other'
+  const formFields = (currentService?.formFields && currentService.formFields.length > 0)
+    ? currentService.formFields
+    : (SERVICE_PROPERTY_TYPES[currentService?.id] ? [
+        { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
+        { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
+        { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
+        { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: SERVICE_PROPERTY_TYPES[currentService.id] },
+        { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
+        { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes, preferred finishes...', required: false }
+      ] : [
+        { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
+        { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
+        { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
+        { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: ['1 BHK Apartment', '2 BHK Apartment', '3 BHK Apartment', 'Villa / Duplex', 'Other'] },
+        { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
+        { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes, preferred finishes...', required: false }
       ]);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    propertyType: propertyTypes[0],
-    address: '',
-    notes: ''
+  // Dynamic Form State
+  const [formData, setFormData] = useState(() => {
+    const init = {};
+    formFields.forEach(f => {
+      init[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
+    });
+    return init;
   });
 
   const [errors, setErrors] = useState({});
@@ -108,22 +113,32 @@ export default function ServiceInquiryPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Reset form when serviceId changes
+  // Reset form when serviceId or currentService changes
   useEffect(() => {
     if (currentService) {
-      const types = (currentService.propertyTypes && currentService.propertyTypes.length > 0)
-        ? currentService.propertyTypes
-        : (SERVICE_PROPERTY_TYPES[currentService.id] || [
-            '1 BHK Apartment',
-            '2 BHK Apartment',
-            '3 BHK Apartment',
-            'Villa / Duplex',
-            'Other'
+      const activeFields = (currentService.formFields && currentService.formFields.length > 0)
+        ? currentService.formFields
+        : (SERVICE_PROPERTY_TYPES[currentService.id] ? [
+            { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
+            { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
+            { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
+            { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: SERVICE_PROPERTY_TYPES[currentService.id] },
+            { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
+            { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes...', required: false }
+          ] : [
+            { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
+            { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
+            { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
+            { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: ['1 BHK Apartment', '2 BHK Apartment', '3 BHK Apartment', 'Villa / Duplex', 'Other'] },
+            { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
+            { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes...', required: false }
           ]);
-      setFormData(prev => ({
-        ...prev,
-        propertyType: types[0]
-      }));
+
+      const nextData = {};
+      activeFields.forEach(f => {
+        nextData[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
+      });
+      setFormData(nextData);
       setErrors({});
       setIsSuccess(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -140,22 +155,21 @@ export default function ServiceInquiryPage() {
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim() || formData.name.trim().length < 2) {
-      errs.name = 'Please enter your full name (at least 2 characters).';
-    }
-
-    const cleanPhone = formData.phone.replace(/[^\d]/g, '');
-    if (!cleanPhone || cleanPhone.length < 10) {
-      errs.phone = 'Please enter a valid 10-digit mobile number.';
-    }
-
-    if (!formData.address.trim() || formData.address.trim().length < 3) {
-      errs.address = 'Please enter your property address or location.';
-    }
-
-    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errs.email = 'Please enter a valid email address.';
-    }
+    formFields.forEach(field => {
+      const val = (formData[field.id] || '').toString().trim();
+      if (field.required && !val) {
+        errs[field.id] = `Please enter ${field.label.toLowerCase()}.`;
+      } else if (field.type === 'tel' && val) {
+        const clean = val.replace(/\D/g, '');
+        if (clean.length < 10) {
+          errs[field.id] = 'Please enter a valid 10-digit mobile number.';
+        }
+      } else if (field.type === 'email' && val) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+          errs[field.id] = 'Please enter a valid email address.';
+        }
+      }
+    });
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -169,16 +183,27 @@ export default function ServiceInquiryPage() {
     setErrorMessage('');
 
     try {
+      const standardKeys = new Set(['name', 'phone', 'email', 'address', 'location', 'propertyType', 'notes']);
+      const customFields = {};
+      Object.entries(formData).forEach(([k, v]) => {
+        if (!standardKeys.has(k) && v) {
+          const fieldDef = formFields.find(f => f.id === k);
+          const fieldLabel = fieldDef ? fieldDef.label : k;
+          customFields[fieldLabel] = v;
+        }
+      });
+
       await submitServiceInquiry({
         serviceId: currentService.id,
         serviceTitle: currentService.title,
-        name: formData.name.trim(),
-        phone: formData.phone.trim(),
-        email: formData.email.trim(),
-        address: formData.address.trim(),
-        location: formData.address.trim(),
-        propertyType: formData.propertyType,
-        notes: formData.notes.trim()
+        name: formData.name || 'Anonymous',
+        phone: formData.phone || '',
+        email: formData.email || '',
+        address: formData.address || formData.location || 'Direct Inquiry',
+        location: formData.address || formData.location || 'Direct Inquiry',
+        propertyType: formData.propertyType || formData.spaceType || 'Residential Space',
+        notes: formData.notes || '',
+        custom_fields: customFields
       });
 
       setIsSuccess(true);
@@ -190,14 +215,11 @@ export default function ServiceInquiryPage() {
   };
 
   const handleReset = () => {
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      propertyType: propertyTypes[0],
-      address: '',
-      notes: ''
+    const init = {};
+    formFields.forEach(f => {
+      init[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
     });
+    setFormData(init);
     setErrors({});
     setIsSuccess(false);
   };
@@ -400,7 +422,7 @@ export default function ServiceInquiryPage() {
                     {currentService.formHeading || `Get Free Quote for ${currentService.shortTitle || currentService.title}`}
                   </h2>
                   <p className="text-xs sm:text-sm text-luxury-muted mt-1 leading-relaxed">
-                    Schedule a free laser site measurement and get a transparent itemized estimate for <strong className="text-luxury-walnut">{currentService.title}</strong>.
+                    {currentService.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${currentService.title}.`}
                   </p>
                 </div>
 
@@ -411,132 +433,79 @@ export default function ServiceInquiryPage() {
                   </div>
                 )}
 
-                {/* 1. Customer Name & Mobile Number */}
+                {/* Dynamic Form Fields Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Full Name */}
-                  <div>
-                    <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                      Full Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="e.g. Mohammed Ahmed"
-                      className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                        errors.name ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                      }`}
-                    />
-                    {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
-                  </div>
+                  {formFields.map((field) => {
+                    const isFullWidth = field.type === 'textarea' || field.id === 'address';
 
-                  {/* Mobile Number */}
-                  <div>
-                    <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                      Mobile Number <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-luxury-muted">
-                        +91
-                      </span>
-                      <input
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="98765 43210"
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                          errors.phone ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                        }`}
-                      />
-                    </div>
-                    {errors.phone && <p className="text-[11px] text-red-500 mt-1">{errors.phone}</p>}
-                  </div>
+                    return (
+                      <div key={field.id} className={isFullWidth ? 'col-span-full' : 'col-span-1'}>
+                        <label htmlFor={field.id} className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                          {field.label} {field.required ? <span className="text-red-500">*</span> : <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>}
+                        </label>
+
+                        {field.type === 'tel' ? (
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-luxury-muted">
+                              +91
+                            </span>
+                            <input
+                              id={field.id}
+                              type="tel"
+                              name={field.id}
+                              value={formData[field.id] || ''}
+                              onChange={handleChange}
+                              placeholder={field.placeholder || '98765 43210'}
+                              className={`w-full pl-12 pr-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                                errors[field.id] ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                              }`}
+                            />
+                          </div>
+                        ) : field.type === 'select' ? (
+                          <select
+                            id={field.id}
+                            name={field.id}
+                            value={formData[field.id] || (field.options?.[0] || '')}
+                            onChange={handleChange}
+                            className="w-full px-3.5 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold"
+                          >
+                            {(field.options || []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.type === 'textarea' ? (
+                          <textarea
+                            id={field.id}
+                            name={field.id}
+                            rows={3}
+                            value={formData[field.id] || ''}
+                            onChange={handleChange}
+                            placeholder={field.placeholder || 'Describe your floor plan, dimensions, or specific design preferences...'}
+                            className="w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold resize-none"
+                          />
+                        ) : (
+                          <input
+                            id={field.id}
+                            type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : 'text'}
+                            name={field.id}
+                            value={formData[field.id] || ''}
+                            onChange={handleChange}
+                            placeholder={field.placeholder || ''}
+                            className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                              errors[field.id] ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                            }`}
+                          />
+                        )}
+
+                        {errors[field.id] && <p className="text-[11px] text-red-500 mt-1">{errors[field.id]}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* 2. Email Address (Optional) & Space/Property Type */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Email (Optional) */}
-                  <div>
-                    <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                      Email Address <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="e.g. ahmed@gmail.com"
-                        className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                          errors.email ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                        }`}
-                      />
-                    </div>
-                    {errors.email && <p className="text-[11px] text-red-500 mt-1">{errors.email}</p>}
-                  </div>
-
-                  {/* Space / Property Type (With 1 BHK included) */}
-                  <div>
-                    <label htmlFor="propertyType" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                      Space / Property Type
-                    </label>
-                    <select
-                      id="propertyType"
-                      name="propertyType"
-                      value={formData.propertyType}
-                      onChange={handleChange}
-                      className="w-full px-3.5 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold"
-                    >
-                      {propertyTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* 3. Address Text Box */}
-                <div>
-                  <label htmlFor="address" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                    Property Address / Location <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="address"
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="e.g. Flat / House No, Apartment Name, Area, City"
-                    className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                      errors.address ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                    }`}
-                  />
-                  {errors.address && <p className="text-[11px] text-red-500 mt-1">{errors.address}</p>}
-                </div>
-
-                {/* 4. Specific Requirements / Dimensions Notes (Optional) */}
-                <div>
-                  <label htmlFor="notes" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                    Project Notes & Dimensions <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    rows={3}
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder={currentService.formNotesPlaceholder || `Tell us about room sizes, preferred finishes (Acrylic, PU, Teak, Veneer), or specific ideas for ${currentService.shortTitle || currentService.title}...`}
-                    className="w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold resize-none"
-                  />
-                </div>
-
-                {/* 5. Submit Button */}
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -550,7 +519,7 @@ export default function ServiceInquiryPage() {
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Request Free Quote for {currentService.shortTitle}</span>
+                      <span>{currentService.submitButtonText || `Request Free Quote for ${currentService.shortTitle || currentService.title}`}</span>
                     </>
                   )}
                 </button>

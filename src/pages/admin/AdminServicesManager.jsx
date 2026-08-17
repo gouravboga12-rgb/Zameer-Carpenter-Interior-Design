@@ -1,10 +1,30 @@
 import React, { useState, useRef } from 'react';
 import { 
   Plus, Edit2, Trash2, CheckCircle2, Image as ImageIcon, Sparkles, 
-  X, Save, Upload, AlertTriangle, ListFilter, Sliders, FileText, Check 
+  X, Save, Upload, AlertTriangle, ListFilter, Sliders, FileText, Check,
+  ArrowUp, ArrowDown, HelpCircle, FormInput, Type, Phone, Mail, Hash,
+  ChevronDown, RotateCcw, PlusCircle
 } from 'lucide-react';
-import { useAdminData } from '../../context/AdminDataContext';
+import { useAdminData, getDefaultFormFieldsForService } from '../../context/AdminDataContext';
 import { uploadToCloudinary } from '../../utils/cloudinary';
+
+const FIELD_TYPE_LABELS = {
+  text: 'Single-line Text',
+  tel: 'Phone Number (+91)',
+  email: 'Email Address',
+  number: 'Number (Digits Only)',
+  select: 'Dropdown Select',
+  textarea: 'Multi-line Textarea'
+};
+
+const FIELD_TYPE_ICONS = {
+  text: Type,
+  tel: Phone,
+  email: Mail,
+  number: Hash,
+  select: ListFilter,
+  textarea: FileText
+};
 
 export default function AdminServicesManager() {
   const { services, addService, updateService, deleteService } = useAdminData();
@@ -15,7 +35,19 @@ export default function AdminServicesManager() {
   const [uploadError, setUploadError] = useState('');
   const formRef = useRef(null);
 
-  // Form State
+  // Field Editor Sub-State (For Adding or Editing a specific field inside the form)
+  const [editingFieldIndex, setEditingFieldIndex] = useState(null); // number | null
+  const [isAddingField, setIsAddingField] = useState(false);
+  const [fieldFormData, setFieldFormData] = useState({
+    id: '',
+    label: '',
+    type: 'text',
+    placeholder: '',
+    required: true,
+    optionsText: ''
+  });
+
+  // Main Service Form State
   const [formData, setFormData] = useState({
     title: '',
     shortTitle: '',
@@ -25,14 +57,20 @@ export default function AdminServicesManager() {
     image: '',
     subservicesText: '',
     featuresText: '',
-    propertyTypesText: '',
     formHeading: '',
-    formNotesPlaceholder: ''
+    formSubtitle: '',
+    submitButtonText: '',
+    formFields: []
   });
 
   const handleOpenCreate = () => {
     setUploadError('');
     setActiveFormTab('catalog');
+    setIsAddingField(false);
+    setEditingFieldIndex(null);
+
+    const defaultFields = getDefaultFormFieldsForService('new-service', 'New Service');
+
     setFormData({
       title: '',
       shortTitle: '',
@@ -42,9 +80,10 @@ export default function AdminServicesManager() {
       image: '',
       subservicesText: 'Complete Interior Design\nCustom Carpentry\nLighting & False Ceilings\n3D Render Visualization\nTurnkey Handover',
       featuresText: 'Custom 3D walkthroughs before woodwork begins\nPrecision laser site measurements & structural planning\nSeamless integration of furniture, electricals & lighting\nSingle-point turnkey accountability with on-time handover',
-      propertyTypesText: '1 BHK Apartment\n2 BHK Apartment\n3 BHK Apartment\n4 BHK / Penthouse\nVilla / Duplex House\nIndependent House\nCommercial / Other',
       formHeading: 'Request On-Site Measurement & 3D Consultation',
-      formNotesPlaceholder: 'Describe your floor plan, dimensions, or specific design preferences...'
+      formSubtitle: 'Schedule a free laser site measurement and get a transparent itemized estimate.',
+      submitButtonText: 'Request Free Quote',
+      formFields: defaultFields
     });
     setEditingService(null);
     setIsCreating(true);
@@ -57,7 +96,14 @@ export default function AdminServicesManager() {
   const handleOpenEdit = (srv) => {
     setUploadError('');
     setActiveFormTab('catalog');
+    setIsAddingField(false);
+    setEditingFieldIndex(null);
     setEditingService(srv);
+
+    const currentFields = (srv.formFields && srv.formFields.length > 0)
+      ? srv.formFields
+      : getDefaultFormFieldsForService(srv.id, srv.shortTitle || srv.title, srv.propertyTypes);
+
     setFormData({
       title: srv.title || '',
       shortTitle: srv.shortTitle || srv.title || '',
@@ -67,17 +113,10 @@ export default function AdminServicesManager() {
       image: srv.image || '',
       subservicesText: (srv.subservices || []).join('\n'),
       featuresText: (srv.features || []).join('\n'),
-      propertyTypesText: (srv.propertyTypes || [
-        '1 BHK Apartment',
-        '2 BHK Apartment',
-        '3 BHK Apartment',
-        '4 BHK / Penthouse',
-        'Villa / Duplex House',
-        'Independent House',
-        'Commercial / Other'
-      ]).join('\n'),
-      formHeading: srv.formHeading || `Book Free Site Visit for ${srv.shortTitle || srv.title}`,
-      formNotesPlaceholder: srv.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
+      formHeading: srv.formHeading || `Get Free Quote for ${srv.shortTitle || srv.title}`,
+      formSubtitle: srv.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${srv.title}.`,
+      submitButtonText: srv.submitButtonText || `Request Free Quote for ${srv.shortTitle || srv.title}`,
+      formFields: JSON.parse(JSON.stringify(currentFields))
     });
     setIsCreating(false);
     setTimeout(() => {
@@ -92,7 +131,6 @@ export default function AdminServicesManager() {
 
     setUploadError('');
 
-    // 5MB Size Validation
     const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) {
       const actualMb = (file.size / (1024 * 1024)).toFixed(1);
@@ -110,6 +148,105 @@ export default function AdminServicesManager() {
       setUploading(false);
     }
   };
+
+  // --- FORM FIELDS CRUD HANDLERS ---
+
+  const handleOpenAddField = () => {
+    setEditingFieldIndex(null);
+    setFieldFormData({
+      id: '',
+      label: '',
+      type: 'text',
+      placeholder: '',
+      required: true,
+      optionsText: 'Option 1\nOption 2\nOption 3'
+    });
+    setIsAddingField(true);
+  };
+
+  const handleOpenEditField = (index) => {
+    const target = formData.formFields[index];
+    if (!target) return;
+    setEditingFieldIndex(index);
+    setFieldFormData({
+      id: target.id || '',
+      label: target.label || '',
+      type: target.type || 'text',
+      placeholder: target.placeholder || '',
+      required: target.required !== false,
+      optionsText: (target.options || []).join('\n')
+    });
+    setIsAddingField(false);
+  };
+
+  const handleSaveField = (e) => {
+    e.preventDefault();
+    if (!fieldFormData.label.trim()) return;
+
+    // Generate unique ID slug if empty
+    const generatedId = fieldFormData.id.trim() || 
+      fieldFormData.label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '') ||
+      'field_' + Date.now();
+
+    const options = fieldFormData.type === 'select'
+      ? fieldFormData.optionsText.split('\n').map(o => o.trim()).filter(Boolean)
+      : [];
+
+    const fieldObj = {
+      id: generatedId,
+      label: fieldFormData.label.trim(),
+      type: fieldFormData.type,
+      placeholder: fieldFormData.placeholder.trim(),
+      required: Boolean(fieldFormData.required),
+      ...(fieldFormData.type === 'select' ? { options } : {})
+    };
+
+    if (editingFieldIndex !== null) {
+      // Update existing field
+      const updatedFields = [...formData.formFields];
+      updatedFields[editingFieldIndex] = fieldObj;
+      setFormData(prev => ({ ...prev, formFields: updatedFields }));
+    } else {
+      // Add new field
+      setFormData(prev => ({ ...prev, formFields: [...prev.formFields, fieldObj] }));
+    }
+
+    setIsAddingField(false);
+    setEditingFieldIndex(null);
+  };
+
+  const handleDeleteField = (index) => {
+    const target = formData.formFields[index];
+    if (window.confirm(`Are you sure you want to delete the inquiry field "${target.label}"?`)) {
+      const updatedFields = formData.formFields.filter((_, idx) => idx !== index);
+      setFormData(prev => ({ ...prev, formFields: updatedFields }));
+      if (editingFieldIndex === index) {
+        setEditingFieldIndex(null);
+      }
+    }
+  };
+
+  const handleMoveField = (index, direction) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= formData.formFields.length) return;
+    const updated = [...formData.formFields];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(newIndex, 0, moved);
+    setFormData(prev => ({ ...prev, formFields: updated }));
+  };
+
+  const handleResetToStandardFields = () => {
+    if (window.confirm('Reset this service inquiry form to the standard 6 default fields (Name, Phone, Email, Space Type, Address, Notes)?')) {
+      const srvId = editingService ? editingService.id : 'default';
+      const srvTitle = formData.shortTitle || formData.title || 'this service';
+      const defaults = getDefaultFormFieldsForService(srvId, srvTitle);
+      setFormData(prev => ({ ...prev, formFields: defaults }));
+      setIsAddingField(false);
+      setEditingFieldIndex(null);
+    }
+  };
+
+  // --- SAVE WHOLE SERVICE VERTICAL ---
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,10 +266,11 @@ export default function AdminServicesManager() {
       .map(s => s.trim())
       .filter(Boolean);
 
-    const pTypes = formData.propertyTypesText
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
+    // Extract property types from select field if exists
+    const propertyTypeField = formData.formFields.find(f => f.id === 'propertyType' || f.type === 'select');
+    const pTypes = (propertyTypeField && propertyTypeField.options && propertyTypeField.options.length > 0)
+      ? propertyTypeField.options
+      : ['1 BHK Apartment', '2 BHK Apartment', '3 BHK Apartment', 'Villa / Duplex', 'Other'];
 
     const payload = {
       title: formData.title,
@@ -143,15 +281,11 @@ export default function AdminServicesManager() {
       image: formData.image,
       subservices: subs,
       features: feats,
-      propertyTypes: pTypes.length > 0 ? pTypes : [
-        '1 BHK Apartment',
-        '2 BHK Apartment',
-        '3 BHK Apartment',
-        'Villa / Duplex',
-        'Other'
-      ],
-      formHeading: formData.formHeading || `Book Free Site Visit for ${formData.shortTitle || formData.title}`,
-      formNotesPlaceholder: formData.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
+      propertyTypes: pTypes,
+      formFields: formData.formFields,
+      formHeading: formData.formHeading || `Get Free Quote for ${formData.shortTitle || formData.title}`,
+      formSubtitle: formData.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate.`,
+      submitButtonText: formData.submitButtonText || `Request Free Quote for ${formData.shortTitle || formData.title}`
     };
 
     if (editingService) {
@@ -180,7 +314,7 @@ export default function AdminServicesManager() {
             Manage Services ({services.length} Verticals)
           </h2>
           <p className="text-xs text-luxury-muted mt-0.5">
-            Add or edit service catalog details, execution scopes, and tailored customer inquiry form fields.
+            Add or edit service catalog details, execution scopes, and tailored customer inquiry form fields (Full CRUD).
           </p>
         </div>
 
@@ -198,7 +332,7 @@ export default function AdminServicesManager() {
         <div
           ref={formRef}
           id="service-form-section"
-          className="bg-luxury-card p-6 sm:p-8 rounded-3xl border-2 border-luxury-gold shadow-2xl space-y-5 relative scroll-mt-24 ring-4 ring-luxury-gold/30 transition-all duration-300"
+          className="bg-luxury-card p-6 sm:p-8 rounded-3xl border-2 border-luxury-gold shadow-2xl space-y-6 relative scroll-mt-24 ring-4 ring-luxury-gold/30 transition-all duration-300"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-luxury-border pb-4">
@@ -206,7 +340,7 @@ export default function AdminServicesManager() {
               <span className="text-xs font-extrabold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
                 {editingService ? 'Edit Existing Service' : 'New Service Creator'}
               </span>
-              <h3 className="font-heading text-xl font-bold text-luxury-walnut flex items-center gap-2 mt-0.5">
+              <h3 className="font-heading text-xl sm:text-2xl font-bold text-luxury-walnut flex items-center gap-2 mt-0.5">
                 <Sparkles className="w-5 h-5 text-luxury-gold" />
                 <span>{editingService ? editingService.title : 'Create New Service Vertical'}</span>
               </h3>
@@ -246,7 +380,10 @@ export default function AdminServicesManager() {
               }`}
             >
               <ListFilter className="w-4 h-4 text-emerald-600" />
-              <span>2. Dedicated Inquiry Form Fields & Options</span>
+              <span>2. Dedicated Inquiry Form Fields (CRUD Builder)</span>
+              <span className="px-2 py-0.5 rounded-full bg-luxury-gold/20 text-[10px] font-extrabold text-luxury-gold-dark">
+                {formData.formFields.length} Fields
+              </span>
             </button>
           </div>
 
@@ -258,7 +395,7 @@ export default function AdminServicesManager() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* TAB 1: SERVICE DETAILS & SCOPE */}
             {activeFormTab === 'catalog' && (
@@ -430,71 +567,364 @@ export default function AdminServicesManager() {
               </div>
             )}
 
-            {/* TAB 2: DEDICATED INQUIRY FORM CONFIGURATION */}
+            {/* TAB 2: DEDICATED INQUIRY FORM CONFIGURATION (FULL CRUD BUILDER) */}
             {activeFormTab === 'inquiry-form' && (
-              <div className="space-y-4 animate-fadeIn">
-                <div className="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/30 text-emerald-900 text-xs">
-                  <div className="flex items-center gap-2 font-bold text-xs text-emerald-800 mb-1">
-                    <ListFilter className="w-4 h-4" />
-                    <span>Tailored Customer Inquiry Form Customization</span>
+              <div className="space-y-6 animate-fadeIn">
+                
+                {/* Info Callout */}
+                <div className="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/30 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 font-bold text-xs text-emerald-800">
+                      <ListFilter className="w-4 h-4" />
+                      <span>Form Fields & Options Builder (Full CRUD)</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 leading-relaxed">
+                      Add custom fields, edit existing fields, modify dropdown options, reorder, or delete unnecessary fields.
+                    </p>
                   </div>
-                  <p className="text-[11px] text-emerald-700 leading-relaxed">
-                    Configure the specific booking form that opens when customers click on this service. You can customize the property dropdown choices, form title, and notes prompt.
-                  </p>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleResetToStandardFields}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-[11px] font-bold cursor-pointer transition-colors shadow-2xs"
+                      title="Reset to default 6 fields"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset to Defaults</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleOpenAddField}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm cursor-pointer transition-transform active:scale-95"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>+ Add New Field</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-luxury-gold" />
-                    <span>Inquiry Form Header Title</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.formHeading}
-                    onChange={(e) => setFormData({ ...formData, formHeading: e.target.value })}
-                    placeholder={`e.g. Get Free Quote for ${formData.shortTitle || formData.title || 'this service'}`}
-                    className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
-                  />
-                  <span className="text-[10px] text-luxury-muted mt-1 block">
-                    Header displayed directly above the service inquiry form
-                  </span>
+                {/* Form General Titles */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-luxury-surface p-4 rounded-2xl border border-luxury-border">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                      Inquiry Form Header Title
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.formHeading}
+                      onChange={(e) => setFormData({ ...formData, formHeading: e.target.value })}
+                      placeholder={`e.g. Get Free Quote for ${formData.shortTitle || formData.title || 'this service'}`}
+                      className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                      Form Subtitle / Explainer
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.formSubtitle}
+                      onChange={(e) => setFormData({ ...formData, formSubtitle: e.target.value })}
+                      placeholder="e.g. Schedule a free laser site measurement and get a transparent estimate."
+                      className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                      Submit Button Text
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.submitButtonText}
+                      onChange={(e) => setFormData({ ...formData, submitButtonText: e.target.value })}
+                      placeholder={`e.g. Request Free Quote for ${formData.shortTitle || 'Service'}`}
+                      className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <ListFilter className="w-3.5 h-3.5 text-luxury-gold" />
-                      <span>Property / Space Type Dropdown Options (1 per line)</span>
+                {/* Inline Field Editor Modal / Box (When creating or editing a single field) */}
+                {(isAddingField || editingFieldIndex !== null) && (
+                  <div className="p-5 sm:p-6 rounded-3xl bg-amber-50/70 border-2 border-luxury-gold shadow-lg space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-luxury-gold/30 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Edit2 className="w-4 h-4 text-luxury-gold-dark" />
+                        <h4 className="font-heading text-sm sm:text-base font-bold text-luxury-walnut">
+                          {editingFieldIndex !== null 
+                            ? `Edit Field: "${formData.formFields[editingFieldIndex]?.label}"` 
+                            : 'Create New Form Field'}
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setIsAddingField(false); setEditingFieldIndex(null); }}
+                        className="p-1 rounded-full text-luxury-muted hover:text-luxury-walnut hover:bg-white/80"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Field Label */}
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                          Field Label <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={fieldFormData.label}
+                          onChange={(e) => setFieldFormData({ ...fieldFormData, label: e.target.value })}
+                          placeholder="e.g. Estimated Budget, Carpet Area (Sq Ft)"
+                          className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Field Type */}
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                          Input Field Type
+                        </label>
+                        <select
+                          value={fieldFormData.type}
+                          onChange={(e) => setFieldFormData({ ...fieldFormData, type: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-semibold focus:border-luxury-gold focus:outline-none"
+                        >
+                          <option value="text">Single-line Text</option>
+                          <option value="tel">Phone Number (+91 format)</option>
+                          <option value="email">Email Address</option>
+                          <option value="number">Number / Digits Only</option>
+                          <option value="select">Dropdown Select (Custom Options)</option>
+                          <option value="textarea">Multi-line Textarea (Notes / Remarks)</option>
+                        </select>
+                      </div>
+
+                      {/* Field Key / ID */}
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                          Field Key ID <span className="text-luxury-muted font-normal lowercase">(optional identifier)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={fieldFormData.id}
+                          onChange={(e) => setFieldFormData({ ...fieldFormData, id: e.target.value })}
+                          placeholder="e.g. estimated_budget, carpet_area"
+                          className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-mono focus:border-luxury-gold focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Placeholder Text */}
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
+                          Placeholder Text
+                        </label>
+                        <input
+                          type="text"
+                          value={fieldFormData.placeholder}
+                          onChange={(e) => setFieldFormData({ ...fieldFormData, placeholder: e.target.value })}
+                          placeholder="e.g. Enter room dimensions, preferred finish..."
+                          className="w-full p-2.5 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Mandatory / Required Checkbox */}
+                      <div className="flex items-center gap-3 pt-6">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={fieldFormData.required}
+                            onChange={(e) => setFieldFormData({ ...fieldFormData, required: e.target.checked })}
+                            className="w-4 h-4 accent-luxury-gold rounded cursor-pointer"
+                          />
+                          <span className="text-xs font-bold text-luxury-walnut">
+                            Mandatory Field (Customer must fill before submitting)
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Options list if type is 'select' */}
+                    {fieldFormData.type === 'select' && (
+                      <div className="space-y-1.5 pt-2 border-t border-luxury-gold/20">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-luxury-charcoal block flex items-center justify-between">
+                          <span>Dropdown Choices (1 per line)</span>
+                          <span className="text-[10px] text-luxury-gold-dark font-bold">
+                            {fieldFormData.optionsText.split('\n').filter(Boolean).length} Options
+                          </span>
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={fieldFormData.optionsText}
+                          onChange={(e) => setFieldFormData({ ...fieldFormData, optionsText: e.target.value })}
+                          placeholder="1 BHK Apartment&#10;2 BHK Apartment&#10;3 BHK Apartment&#10;Villa / Duplex House"
+                          className="w-full p-3 rounded-xl bg-white border border-luxury-border text-xs text-luxury-walnut font-mono focus:border-luxury-gold focus:outline-none"
+                        />
+                        <span className="text-[10px] text-luxury-muted block">
+                          Each line will be rendered as a choice in the dropdown menu.
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Sub-form action buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-luxury-gold/30">
+                      <button
+                        type="button"
+                        onClick={() => { setIsAddingField(false); setEditingFieldIndex(null); }}
+                        className="px-4 py-2 rounded-xl bg-white border border-luxury-border text-luxury-charcoal hover:bg-gray-100 text-xs font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveField}
+                        className="px-5 py-2 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold text-xs font-bold shadow-xs cursor-pointer"
+                      >
+                        {editingFieldIndex !== null ? 'Save Field Changes' : 'Add Field to Form'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Fields Visual List (Interactive CRUD Cards) */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-luxury-gold" />
+                      <span>Active Form Fields ({formData.formFields.length} Defined)</span>
                     </span>
-                    <span className="text-[10px] text-luxury-gold-dark font-bold">
-                      {formData.propertyTypesText.split('\n').filter(Boolean).length} Options Configured
+                    <span className="text-[11px] text-luxury-muted">
+                      Use arrows to reorder • Click edit (✏️) to modify
                     </span>
-                  </label>
-                  <textarea
-                    rows={6}
-                    required
-                    value={formData.propertyTypesText}
-                    onChange={(e) => setFormData({ ...formData, propertyTypesText: e.target.value })}
-                    placeholder="1 BHK Apartment&#10;2 BHK Apartment&#10;3 BHK Apartment&#10;4 BHK / Penthouse&#10;Villa / Duplex House&#10;Independent House&#10;Commercial / Other"
-                    className="w-full p-3.5 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-mono focus:border-luxury-gold focus:outline-none leading-relaxed"
-                  />
-                  <span className="text-[10px] text-luxury-muted block mt-1">
-                    Each line becomes a selectable choice in the "Space / Property Type" dropdown on this service's inquiry page.
-                  </span>
+                  </div>
+
+                  {formData.formFields.length === 0 ? (
+                    <div className="p-8 text-center bg-luxury-surface rounded-2xl border-2 border-dashed border-luxury-border space-y-2">
+                      <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
+                      <h4 className="font-heading text-sm font-bold text-luxury-walnut">No Fields Configured</h4>
+                      <p className="text-xs text-luxury-muted">Click "+ Add New Field" or "Reset to Defaults" above.</p>
+                    </div>
+                  ) : (
+                    formData.formFields.map((field, idx) => {
+                      const TypeIcon = FIELD_TYPE_ICONS[field.type] || Type;
+                      const typeLabel = FIELD_TYPE_LABELS[field.type] || field.type;
+                      const isEditingThis = editingFieldIndex === idx;
+
+                      return (
+                        <div
+                          key={field.id || idx}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                            isEditingThis 
+                              ? 'bg-luxury-gold/15 border-luxury-gold shadow-md' 
+                              : 'bg-luxury-surface hover:bg-white border-luxury-border hover:border-luxury-gold/50 shadow-2xs'
+                          }`}
+                        >
+                          {/* Left Details */}
+                          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                            {/* Sequence Badge */}
+                            <span className="w-7 h-7 rounded-lg bg-luxury-walnut text-luxury-gold text-xs font-black flex items-center justify-center shrink-0 shadow-2xs">
+                              #{idx + 1}
+                            </span>
+
+                            <div className="min-w-0 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h5 className="font-heading text-sm font-bold text-luxury-walnut truncate">
+                                  {field.label}
+                                </h5>
+
+                                {field.required ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px] font-extrabold border border-red-200">
+                                    Required *
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold border border-gray-200">
+                                    Optional
+                                  </span>
+                                )}
+
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold-dark text-[10px] font-bold border border-luxury-gold/30">
+                                  <TypeIcon className="w-3 h-3" />
+                                  <span>{typeLabel}</span>
+                                </span>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-3 text-[11px] text-luxury-muted">
+                                <span className="font-mono text-[10px] bg-black/5 px-1.5 py-0.5 rounded">
+                                  key: {field.id}
+                                </span>
+
+                                {field.placeholder && (
+                                  <span className="italic truncate max-w-xs sm:max-w-sm">
+                                    "{field.placeholder}"
+                                  </span>
+                                )}
+
+                                {field.type === 'select' && (
+                                  <span className="font-bold text-emerald-700">
+                                    • {(field.options || []).length} choices ({(field.options || []).slice(0, 2).join(', ')}...)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons: Up, Down, Edit, Delete */}
+                          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                            {/* Move Up */}
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveField(idx, -1)}
+                              className="p-1.5 rounded-lg bg-white hover:bg-luxury-border disabled:opacity-30 text-luxury-walnut border border-luxury-border cursor-pointer transition-colors"
+                              title="Move field up"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Move Down */}
+                            <button
+                              type="button"
+                              disabled={idx === formData.formFields.length - 1}
+                              onClick={() => handleMoveField(idx, 1)}
+                              className="p-1.5 rounded-lg bg-white hover:bg-luxury-border disabled:opacity-30 text-luxury-walnut border border-luxury-border cursor-pointer transition-colors"
+                              title="Move field down"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Edit Field */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditField(idx)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-luxury-walnut hover:bg-black text-luxury-gold text-xs font-bold cursor-pointer transition-colors shadow-2xs"
+                              title="Edit field settings & options"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              <span>Edit</span>
+                            </button>
+
+                            {/* Delete Field */}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteField(idx)}
+                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 border border-red-200 cursor-pointer transition-colors"
+                              title="Delete field"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal block mb-1">
-                    Notes / Requirements Box Placeholder
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.formNotesPlaceholder}
-                    onChange={(e) => setFormData({ ...formData, formNotesPlaceholder: e.target.value })}
-                    placeholder="e.g. Describe your floor plan, dimensions, or specific design preferences..."
-                    className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
-                  />
-                </div>
               </div>
             )}
 
@@ -514,7 +944,7 @@ export default function AdminServicesManager() {
                 className="inline-flex items-center gap-2 py-3 px-8 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider shadow-gold-glow transition-all cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{editingService ? 'Update Service & Form' : 'Save New Service'}</span>
+                <span>{editingService ? 'Update Service & Form Builder' : 'Save New Service'}</span>
               </button>
             </div>
           </form>
@@ -524,7 +954,7 @@ export default function AdminServicesManager() {
       {/* Services Grid Catalog */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((srv) => {
-          const propertyOptionsCount = (srv.propertyTypes || []).length || 6;
+          const formFieldsCount = (srv.formFields || []).length || 6;
           const scopeItemsCount = (srv.subservices || []).length || 5;
 
           return (
@@ -589,10 +1019,10 @@ export default function AdminServicesManager() {
                   <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-900">
                     <span className="text-[11px] font-bold flex items-center gap-1.5">
                       <ListFilter className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Form Space Options:</span>
+                      <span>Inquiry Form Fields:</span>
                     </span>
                     <span className="text-[11px] font-extrabold text-emerald-700 bg-white/70 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                      {propertyOptionsCount} Tailored Types
+                      {formFieldsCount} Dynamic Fields
                     </span>
                   </div>
                 </div>

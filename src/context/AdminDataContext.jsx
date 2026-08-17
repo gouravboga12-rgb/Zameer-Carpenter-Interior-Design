@@ -107,24 +107,88 @@ const DEFAULT_SERVICE_PROPERTY_TYPES = {
   ]
 };
 
+export function getDefaultFormFieldsForService(serviceId, serviceTitle = 'this service', propertyTypes = []) {
+  const pTypes = (propertyTypes && propertyTypes.length > 0)
+    ? propertyTypes
+    : (DEFAULT_SERVICE_PROPERTY_TYPES[serviceId] || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        '4 BHK / Penthouse',
+        'Villa / Duplex House',
+        'Independent House',
+        'Full Home Renovation'
+      ]);
+
+  return [
+    {
+      id: 'name',
+      label: 'Full Name',
+      type: 'text',
+      placeholder: 'e.g. Mohammed Ahmed',
+      required: true
+    },
+    {
+      id: 'phone',
+      label: 'Mobile Number',
+      type: 'tel',
+      placeholder: '98765 43210',
+      required: true
+    },
+    {
+      id: 'email',
+      label: 'Email Address',
+      type: 'email',
+      placeholder: 'e.g. ahmed@gmail.com',
+      required: false
+    },
+    {
+      id: 'propertyType',
+      label: 'Space / Property Type',
+      type: 'select',
+      placeholder: 'Select Space / Property Type',
+      required: true,
+      options: pTypes
+    },
+    {
+      id: 'address',
+      label: 'Property Address / Location',
+      type: 'text',
+      placeholder: 'e.g. Flat / House No, Apartment Name, Area, City',
+      required: true
+    },
+    {
+      id: 'notes',
+      label: 'Project Notes & Dimensions',
+      type: 'textarea',
+      placeholder: 'Tell us about room sizes, preferred finishes (Acrylic, PU, Teak, Veneer), or specific ideas...',
+      required: false
+    }
+  ];
+}
+
 function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedServiceIds()) {
   const deletedSet = new Set(deletedIds);
   const map = new Map();
 
   DEFAULT_SERVICES.forEach(item => {
     if (!deletedSet.has(item.id)) {
+      const pTypes = item.propertyTypes || DEFAULT_SERVICE_PROPERTY_TYPES[item.id] || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        '4 BHK / Penthouse',
+        'Villa / Duplex House',
+        'Independent House',
+        'Commercial / Other'
+      ];
       map.set(item.id, {
         ...item,
-        propertyTypes: item.propertyTypes || DEFAULT_SERVICE_PROPERTY_TYPES[item.id] || [
-          '1 BHK Apartment',
-          '2 BHK Apartment',
-          '3 BHK Apartment',
-          '4 BHK / Penthouse',
-          'Villa / Duplex House',
-          'Independent House',
-          'Commercial / Other'
-        ],
-        formHeading: item.formHeading || `Book Free Site Visit for ${item.shortTitle || item.title}`,
+        propertyTypes: pTypes,
+        formFields: item.formFields || getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes),
+        formHeading: item.formHeading || `Get Free Quote for ${item.shortTitle || item.title}`,
+        formSubtitle: item.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${item.title}.`,
+        submitButtonText: item.submitButtonText || `Request Free Quote for ${item.shortTitle || item.title}`,
         formNotesPlaceholder: item.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
       });
     }
@@ -133,21 +197,28 @@ function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedSe
   (customOrDbServices || []).forEach(item => {
     if (!deletedSet.has(item.id)) {
       const existing = map.get(item.id) || {};
+      const pTypes = (item.propertyTypes && item.propertyTypes.length > 0)
+        ? item.propertyTypes
+        : (existing.propertyTypes || [
+            '1 BHK Apartment',
+            '2 BHK Apartment',
+            '3 BHK Apartment',
+            'Villa / Duplex',
+            'Other'
+          ]);
+
       map.set(item.id, {
         ...existing,
         ...item,
         subservices: item.subservices || existing.subservices || [],
         features: item.features || existing.features || [],
-        propertyTypes: (item.propertyTypes && item.propertyTypes.length > 0)
-          ? item.propertyTypes
-          : (existing.propertyTypes || [
-              '1 BHK Apartment',
-              '2 BHK Apartment',
-              '3 BHK Apartment',
-              'Villa / Duplex',
-              'Other'
-            ]),
-        formHeading: item.formHeading || existing.formHeading || `Book Free Site Visit for ${item.shortTitle || item.title}`,
+        propertyTypes: pTypes,
+        formFields: (item.formFields && item.formFields.length > 0)
+          ? item.formFields
+          : (existing.formFields || getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes)),
+        formHeading: item.formHeading || existing.formHeading || `Get Free Quote for ${item.shortTitle || item.title}`,
+        formSubtitle: item.formSubtitle || existing.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${item.title || 'this project'}.`,
+        submitButtonText: item.submitButtonText || existing.submitButtonText || `Request Free Quote for ${item.shortTitle || item.title}`,
         formNotesPlaceholder: item.formNotesPlaceholder || existing.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
       });
     }
@@ -291,7 +362,13 @@ export function AdminDataProvider({ children }) {
           description: s.description,
           image: s.image,
           subservices: s.subservices || [],
-          features: s.features || []
+          features: s.features || [],
+          propertyTypes: s.property_types || s.propertyTypes || [],
+          formFields: s.form_fields || s.formFields || null,
+          formHeading: s.form_heading || s.formHeading,
+          formSubtitle: s.form_subtitle || s.formSubtitle,
+          submitButtonText: s.submit_button_text || s.submitButtonText,
+          formNotesPlaceholder: s.form_notes_placeholder || s.formNotesPlaceholder
         }));
         const mergedServices = mergeServicesWithDefaults(formatted);
         setServices(mergedServices);
@@ -515,7 +592,10 @@ export function AdminDataProvider({ children }) {
         'Villa / Duplex',
         'Other'
       ],
-      formHeading: newService.formHeading || `Book Free Site Visit for ${newService.shortTitle || newService.title}`,
+      formFields: newService.formFields || getDefaultFormFieldsForService(newService.id, newService.shortTitle || newService.title, newService.propertyTypes),
+      formHeading: newService.formHeading || `Get Free Quote for ${newService.shortTitle || newService.title}`,
+      formSubtitle: newService.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${newService.title}.`,
+      submitButtonText: newService.submitButtonText || `Request Free Quote for ${newService.shortTitle || newService.title}`,
       formNotesPlaceholder: newService.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
     };
 
@@ -536,7 +616,10 @@ export function AdminDataProvider({ children }) {
         subservices: serviceObj.subservices,
         features: serviceObj.features,
         property_types: serviceObj.propertyTypes,
+        form_fields: serviceObj.formFields,
         form_heading: serviceObj.formHeading,
+        form_subtitle: serviceObj.formSubtitle,
+        submit_button_text: serviceObj.submitButtonText,
         form_notes_placeholder: serviceObj.formNotesPlaceholder
       }]);
     } catch (e) {
@@ -579,7 +662,10 @@ export function AdminDataProvider({ children }) {
           subservices: target.subservices,
           features: target.features,
           property_types: target.propertyTypes,
+          form_fields: target.formFields,
           form_heading: target.formHeading,
+          form_subtitle: target.formSubtitle,
+          submit_button_text: target.submitButtonText,
           form_notes_placeholder: target.formNotesPlaceholder
         }]);
       } catch (e) {
