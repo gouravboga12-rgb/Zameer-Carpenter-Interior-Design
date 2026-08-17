@@ -165,11 +165,20 @@ export default function ServiceInquiryPage() {
     }
   }, [serviceId, formFields]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+  const handleChange = (fieldOrEvent, explicitValue) => {
+    let fieldId, value;
+    if (typeof fieldOrEvent === 'string') {
+      fieldId = fieldOrEvent;
+      value = explicitValue;
+    } else if (fieldOrEvent && fieldOrEvent.target) {
+      fieldId = fieldOrEvent.target.name || fieldOrEvent.target.id;
+      value = fieldOrEvent.target.value;
+    }
+    if (fieldId) {
+      setFormData(prev => ({ ...prev, [fieldId]: value }));
+      if (errors[fieldId]) {
+        setErrors(prev => ({ ...prev, [fieldId]: '' }));
+      }
     }
   };
 
