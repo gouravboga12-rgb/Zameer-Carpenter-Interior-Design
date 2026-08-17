@@ -2,27 +2,21 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Home, CookingPot, Hammer, DoorOpen, Tv, Building2, 
   CheckCircle2, ArrowRight, MessageSquare, Sparkles, Phone
 } from 'lucide-react';
 import SectionHeading from '../ui/SectionHeading';
 import { SERVICES_DATA } from '../../data/servicesData';
 import { getServiceInquiryWhatsAppUrl } from '../../utils/whatsapp';
-
-const SERVICE_ICONS = {
-  Home,
-  CookingPot,
-  Hammer,
-  DoorOpen,
-  Tv,
-  Building2
-};
+import { useAdminData } from '../../context/AdminDataContext';
+import { getServiceIcon } from '../../utils/serviceIcons';
 
 export default function ServicesSection() {
-  const [activeTabId, setActiveTabId] = useState(SERVICES_DATA[0].id);
+  const { services } = useAdminData();
+  const servicesList = services && services.length > 0 ? services : SERVICES_DATA;
+  const [activeTabId, setActiveTabId] = useState(servicesList[0]?.id || 'complete-home-interiors');
 
-  const activeService = SERVICES_DATA.find((s) => s.id === activeTabId) || SERVICES_DATA[0];
-  const ActiveIcon = SERVICE_ICONS[activeService.iconName] || Home;
+  const activeService = servicesList.find((s) => s.id === activeTabId) || servicesList[0];
+  const ActiveIcon = getServiceIcon(activeService?.iconName);
 
   return (
     <section id="services" className="py-20 sm:py-28 bg-luxury-bg relative overflow-hidden">
@@ -38,10 +32,10 @@ export default function ServicesSection() {
           subtitle="From handcrafted furniture to complete turnkey interiors, every detail is designed and executed with precision."
         />
 
-        {/* Interactive Service Tab Buttons (6 Services) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 mb-10">
-          {SERVICES_DATA.map((service) => {
-            const Icon = SERVICE_ICONS[service.iconName] || Home;
+        {/* Interactive Service Tab Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mb-10">
+          {servicesList.map((service) => {
+            const Icon = getServiceIcon(service.iconName);
             const isActive = service.id === activeTabId;
 
             return (

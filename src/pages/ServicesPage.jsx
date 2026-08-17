@@ -10,15 +10,7 @@ import { SERVICES_DATA } from '../data/servicesData';
 import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
 
 import { useAdminData } from '../context/AdminDataContext';
-
-const SERVICE_ICONS = {
-  Home,
-  CookingPot,
-  Hammer,
-  DoorOpen,
-  Tv,
-  Building2
-};
+import { getServiceIcon } from '../utils/serviceIcons';
 
 export default function ServicesPage() {
   const { services } = useAdminData();
@@ -36,20 +28,29 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="pt-24 sm:pt-28 pb-16 bg-luxury-bg">
+    <div className="pt-24 sm:pt-28 pb-16 bg-luxury-bg text-luxury-charcoal">
       
-      {/* 2. Interactive Service Detail Browser */}
-      <section className="py-8 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          badge="Interactive Catalog"
-          title="Explore Our Service Verticals"
-          subtitle="Inspect technical capabilities, material standards, and execution scope for all our interior verticals across Hyderabad."
-        />
+      {/* 1. Page Header & Hero Intro */}
+      <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-luxury-gold/15 border border-luxury-gold/30 text-luxury-gold-dark text-xs font-semibold uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Complete Interior Architecture & Bespoke Woodcraft</span>
+        </div>
 
-        {/* 6 Tab Buttons (Desktop & Tablet Grid Only) */}
-        <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+        <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-luxury-walnut">
+          Our Specialized <span className="text-gold-gradient">Service Verticals</span>
+        </h1>
+
+        <p className="text-sm sm:text-base text-luxury-muted max-w-3xl mx-auto leading-relaxed">
+          From full-home 3D turnkey interiors to bespoke handcrafted carpentry, explore our specialized service verticals across Hyderabad.
+        </p>
+      </section>
+
+      {/* 2. Interactive Service Selection Tabs */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 p-2 bg-luxury-surface/80 rounded-3xl border border-luxury-border">
           {servicesList.map((service) => {
-            const Icon = SERVICE_ICONS[service.iconName] || Home;
+            const Icon = getServiceIcon(service.iconName);
             const isActive = service.id === selectedServiceId;
 
             return (

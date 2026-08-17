@@ -13,15 +13,7 @@ import { COMPANY_INFO } from '../data/companyInfo';
 import { useAdminData } from '../context/AdminDataContext';
 import { getDedicatedServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
 import { uploadToCloudinary } from '../utils/cloudinary';
-
-const SERVICE_ICONS = {
-  Home,
-  CookingPot,
-  Hammer,
-  DoorOpen,
-  Tv,
-  Building2
-};
+import { getServiceIcon } from '../utils/serviceIcons';
 
 // Clean tailored property types per service (with 1 BHK included)
 const SERVICE_PROPERTY_TYPES = {
@@ -81,7 +73,7 @@ export default function ServiceInquiryPage() {
   
   // Find current service or fallback
   const currentService = servicesList.find((s) => s.id === serviceId) || servicesList[0];
-  const ServiceIcon = SERVICE_ICONS[currentService?.iconName] || Home;
+  const ServiceIcon = getServiceIcon(currentService?.iconName);
 
   const formFields = (currentService?.formFields && currentService.formFields.length > 0)
     ? currentService.formFields
@@ -666,7 +658,7 @@ export default function ServiceInquiryPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {servicesList.map((service) => {
-              const Icon = SERVICE_ICONS[service.iconName] || Home;
+              const Icon = getServiceIcon(service.iconName);
               const isCurrent = service.id === currentService.id;
 
               return (

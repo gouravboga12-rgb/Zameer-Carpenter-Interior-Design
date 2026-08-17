@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAdminData, getDefaultFormFieldsForService } from '../../context/AdminDataContext';
 import { uploadToCloudinary } from '../../utils/cloudinary';
+import { AVAILABLE_SERVICE_ICONS } from '../../utils/serviceIcons';
 
 const FIELD_TYPE_LABELS = {
   text: 'Single-line Text',
@@ -488,6 +489,47 @@ export default function AdminServicesManager() {
                       placeholder="e.g. Complete Interiors"
                       className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                {/* Interactive Service Tab Icon Selector */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
+                      <span>Service Tab Icon</span>
+                      <span className="text-luxury-muted font-normal text-[11px]">(Click any icon to select)</span>
+                    </label>
+                    <span className="text-xs font-bold text-luxury-gold-dark flex items-center gap-1.5 bg-luxury-gold/15 px-3 py-1 rounded-full border border-luxury-gold/30">
+                      <span>Selected:</span>
+                      <strong className="text-luxury-walnut font-heading">{formData.iconName || 'Home'}</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-52 overflow-y-auto p-3 bg-luxury-surface/80 rounded-2xl border border-luxury-border">
+                    {AVAILABLE_SERVICE_ICONS.map((item) => {
+                      const IconComponent = item.icon;
+                      const isSelected = (formData.iconName || 'Home') === item.name;
+
+                      return (
+                        <button
+                          key={item.name}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, iconName: item.name })}
+                          className={`p-2.5 rounded-xl flex items-center gap-2 text-left transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-luxury-walnut text-luxury-gold border-luxury-gold shadow-md font-bold'
+                              : 'bg-white text-luxury-charcoal hover:bg-luxury-surface hover:border-luxury-gold/50 border-luxury-border/80'
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            isSelected ? 'bg-luxury-gold text-luxury-walnut' : 'bg-luxury-surface text-luxury-muted'
+                          }`}>
+                            <IconComponent className="w-4 h-4" />
+                          </div>
+                          <span className="text-[11px] leading-tight truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
