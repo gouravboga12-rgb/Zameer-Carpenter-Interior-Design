@@ -3,7 +3,7 @@ import {
   Plus, Edit2, Trash2, CheckCircle2, Image as ImageIcon, Sparkles, 
   X, Save, Upload, AlertTriangle, ListFilter, Sliders, FileText, Check,
   ArrowUp, ArrowDown, HelpCircle, FormInput, Type, Phone, Mail, Hash,
-  ChevronDown, RotateCcw, PlusCircle
+  ChevronDown, RotateCcw, PlusCircle, Loader2
 } from 'lucide-react';
 import { useAdminData, getDefaultFormFieldsForService } from '../../context/AdminDataContext';
 import { uploadToCloudinary } from '../../utils/cloudinary';
