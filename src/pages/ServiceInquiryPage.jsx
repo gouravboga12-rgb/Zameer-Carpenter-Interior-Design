@@ -271,8 +271,271 @@ export default function ServiceInquiryPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
-          {/* Left Column: Visual Showcase, Scope Highlights & Assurances (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* Inquiry Form Column (Order 1 on Mobile so form appears right at the top) */}
+          <div className="lg:col-span-7 order-1 lg:order-1">
+            {isSuccess ? (
+              /* Success Screen */
+              <div className="bg-luxury-card rounded-3xl p-8 sm:p-12 border-2 border-luxury-gold shadow-2xl text-center space-y-6 animate-fadeIn">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
+                    Inquiry Successfully Logged
+                  </span>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
+                    Thank You, {formData.name}!
+                  </h2>
+                  <p className="text-sm text-luxury-muted max-w-lg mx-auto leading-relaxed">
+                    Your direct inquiry for <strong className="text-luxury-walnut">{currentService.title}</strong> has been registered. Our design lead Zameer will review your requirements and call you at <strong className="text-luxury-walnut">{formData.phone}</strong> for your free site consultation.
+                  </p>
+                </div>
+
+                {/* Summary Card */}
+                <div className="bg-luxury-surface p-4 rounded-2xl border border-luxury-border text-left text-xs space-y-2 max-w-md mx-auto">
+                  <div className="flex justify-between py-1 border-b border-luxury-border">
+                    <span className="text-luxury-muted font-medium">Service:</span>
+                    <span className="font-bold text-luxury-walnut">{currentService.title}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-luxury-border">
+                    <span className="text-luxury-muted font-medium">Property Address:</span>
+                    <span className="font-bold text-luxury-walnut">{formData.address}</span>
+                  </div>
+                  {formData.email && (
+                    <div className="flex justify-between py-1 border-b border-luxury-border">
+                      <span className="text-luxury-muted font-medium">Email:</span>
+                      <span className="font-bold text-luxury-walnut">{formData.email}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-1">
+                    <span className="text-luxury-muted font-medium">Space / Property:</span>
+                    <span className="font-bold text-luxury-walnut">{formData.propertyType}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-4 border-t border-luxury-border flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a
+                    href={directWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Fast-Track on WhatsApp</span>
+                  </a>
+
+                  <button
+                    onClick={handleReset}
+                    className="w-full sm:w-auto py-3.5 px-5 rounded-xl bg-luxury-surface hover:bg-luxury-border text-luxury-charcoal font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Submit Another Inquiry
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Dedicated Form */
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="bg-luxury-card rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-luxury-gold/40 shadow-2xl space-y-6"
+              >
+                {/* Form Header */}
+                <div className="pb-4 border-b border-luxury-border">
+                  <div className="flex items-center gap-2 text-luxury-gold-dark font-cinzel text-xs font-bold uppercase tracking-wider mb-1">
+                    <Wrench className="w-3.5 h-3.5" />
+                    <span>Direct Service Consultation</span>
+                  </div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
+                    {currentService.formHeading || `Get Free Quote for ${currentService.shortTitle || currentService.title}`}
+                  </h2>
+                  <p className="text-xs text-luxury-muted mt-1 leading-relaxed">
+                    {currentService.formSubtitle || `Fill out your requirements below and our master craftsman will contact you with transparent pricing & site visit scheduling.`}
+                  </p>
+                </div>
+
+                {errorMessage && (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* Dynamic Form Fields Grid */}
+                <div className="space-y-4">
+                  {formFields.map((field) => {
+                    const isFullWidth = field.type === 'textarea' || field.type === 'file' || field.id === 'address' || field.id === 'notes';
+
+                    return (
+                      <div key={field.id} className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center justify-between">
+                          <span>
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                          </span>
+                        </label>
+
+                        {field.type === 'textarea' ? (
+                          <textarea
+                            rows={3}
+                            value={formData[field.id] || ''}
+                            onChange={(e) => handleChange(field.id, e.target.value)}
+                            placeholder={field.placeholder || 'Describe your project requirements, room measurements, or preferred finishes...'}
+                            className={`w-full p-3 rounded-xl bg-luxury-surface border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none transition-colors ${
+                              errors[field.id] ? 'border-red-500' : 'border-luxury-border'
+                            }`}
+                          />
+                        ) : field.type === 'select' ? (
+                          <select
+                            value={formData[field.id] || ''}
+                            onChange={(e) => handleChange(field.id, e.target.value)}
+                            className={`w-full p-3 rounded-xl bg-luxury-surface border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none transition-colors cursor-pointer ${
+                              errors[field.id] ? 'border-red-500' : 'border-luxury-border'
+                            }`}
+                          >
+                            <option value="">{field.placeholder || 'Select Option'}</option>
+                            {(field.options || []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.type === 'file' || field.type === 'image' ? (
+                          <div className="space-y-1.5">
+                            {formData[field.id] ? (
+                              <div className="p-3.5 rounded-2xl bg-luxury-surface/80 border border-luxury-gold/40 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {formData[field.id].startsWith('http') || formData[field.id].startsWith('data:') ? (
+                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-walnut shrink-0 border border-luxury-gold/40 shadow-xs">
+                                      <img src={formData[field.id]} alt="Attachment Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
+                                      <FileText className="w-5 h-5" />
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <span className="text-xs font-bold text-luxury-walnut flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                      <span>Attachment Attached</span>
+                                    </span>
+                                    <span className="text-[10px] text-luxury-muted block truncate max-w-xs font-mono mt-0.5">
+                                      {formData[field.id].startsWith('http') ? 'Cloudinary File Uploaded' : 'Uploaded file'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <label className="px-3 py-1.5 rounded-xl bg-luxury-gold/20 hover:bg-luxury-gold/30 text-luxury-gold-dark text-xs font-bold cursor-pointer transition-colors">
+                                    <span>Change</span>
+                                    <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])} className="hidden" />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, [field.id]: '' }))}
+                                    className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 transition-colors cursor-pointer"
+                                    title="Remove File"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 rounded-2xl bg-luxury-surface/70 border-2 border-dashed border-luxury-gold/40 hover:border-luxury-gold flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left transition-colors">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-9 h-9 rounded-xl bg-luxury-gold/20 text-luxury-gold flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                                    <Upload className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-bold text-luxury-walnut block">
+                                      {field.placeholder || 'Upload Floor Plan, Photos or Design PDF'}
+                                    </span>
+                                    <span className="text-[10px] text-luxury-muted block">
+                                      Supports JPG, PNG, WEBP, PDF (Max 5MB)
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <label className="px-4 py-2 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider cursor-pointer shadow-xs transition-transform active:scale-95 shrink-0 flex items-center gap-1.5 mx-auto sm:mx-0">
+                                  {uploadingFieldId === field.id ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      <span>Uploading...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Upload className="w-3.5 h-3.5" />
+                                      <span>Select File</span>
+                                    </>
+                                  )}
+                                  <input
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])}
+                                    className="hidden"
+                                    disabled={uploadingFieldId === field.id}
+                                  />
+                                </label>
+                              </div>
+                            )}
+
+                            {fieldUploadError[field.id] && (
+                              <span className="text-[11px] text-red-500 font-medium block">
+                                {fieldUploadError[field.id]}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <input
+                            type={field.type || 'text'}
+                            value={formData[field.id] || ''}
+                            onChange={(e) => handleChange(field.id, e.target.value)}
+                            placeholder={field.placeholder || ''}
+                            className={`w-full p-3 rounded-xl bg-luxury-surface border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none transition-colors ${
+                              errors[field.id] ? 'border-red-500' : 'border-luxury-border'
+                            }`}
+                          />
+                        )}
+
+                        {errors[field.id] && (
+                          <span className="text-[11px] text-red-500 font-medium block">
+                            {errors[field.id]}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Submit CTA */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 px-8 rounded-2xl bg-luxury-walnut hover:bg-black text-luxury-gold border border-luxury-gold font-bold text-xs uppercase tracking-widest transition-all shadow-xl hover:scale-[1.01] active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer font-cinzel"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Registering Inquiry...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>{currentService.submitButtonText || `Request Free Quote & Site Visit`}</span>
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-luxury-muted text-center mt-2">
+                    🔒 Zero spam guarantee. Direct connection with master interior designer Zameer.
+                  </p>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Visual Showcase, Scope Highlights & Assurances Column (Order 2 on Mobile, Order 2 on Desktop) */}
+          <div className="lg:col-span-5 space-y-6 order-2 lg:order-2">
             
             {/* Service Visual Card */}
             <div className="luxury-card rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/30">
@@ -360,282 +623,6 @@ export default function ServiceInquiryPage() {
               </div>
             </div>
 
-          </div>
-
-          {/* Right Column: Dedicated Service Contact Detail Form (7 Cols) */}
-          <div className="lg:col-span-7">
-            {isSuccess ? (
-              /* Success Screen */
-              <div className="bg-luxury-card rounded-3xl p-8 sm:p-12 border-2 border-luxury-gold shadow-2xl text-center space-y-6 animate-fadeIn">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
-                    Inquiry Successfully Logged
-                  </span>
-                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
-                    Thank You, {formData.name}!
-                  </h2>
-                  <p className="text-sm text-luxury-muted max-w-lg mx-auto leading-relaxed">
-                    Your direct inquiry for <strong className="text-luxury-walnut">{currentService.title}</strong> has been registered. Our design lead Zameer will review your requirements and call you at <strong className="text-luxury-walnut">{formData.phone}</strong> for your free site consultation.
-                  </p>
-                </div>
-
-                {/* Summary Card */}
-                <div className="bg-luxury-surface p-4 rounded-2xl border border-luxury-border text-left text-xs space-y-2 max-w-md mx-auto">
-                  <div className="flex justify-between py-1 border-b border-luxury-border">
-                    <span className="text-luxury-muted font-medium">Service:</span>
-                    <span className="font-bold text-luxury-walnut">{currentService.title}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-luxury-border">
-                    <span className="text-luxury-muted font-medium">Property Address:</span>
-                    <span className="font-bold text-luxury-walnut">{formData.address}</span>
-                  </div>
-                  {formData.email && (
-                    <div className="flex justify-between py-1 border-b border-luxury-border">
-                      <span className="text-luxury-muted font-medium">Email:</span>
-                      <span className="font-bold text-luxury-walnut">{formData.email}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between py-1">
-                    <span className="text-luxury-muted font-medium">Space / Property:</span>
-                    <span className="font-bold text-luxury-walnut">{formData.propertyType}</span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="pt-4 border-t border-luxury-border flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <a
-                    href={directWhatsAppUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Fast-Track on WhatsApp</span>
-                  </a>
-
-                  <button
-                    onClick={handleReset}
-                    className="w-full sm:w-auto py-3.5 px-5 rounded-xl bg-luxury-surface hover:bg-luxury-border text-luxury-charcoal font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    Submit Another Inquiry
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Dedicated Form */
-              <form
-                onSubmit={handleSubmit}
-                noValidate
-                className="bg-luxury-card rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-luxury-gold/40 shadow-2xl space-y-6"
-              >
-                {/* Form Header */}
-                <div className="pb-4 border-b border-luxury-border">
-                  <div className="flex items-center gap-2 text-luxury-gold-dark font-cinzel text-xs font-bold uppercase tracking-wider mb-1">
-                    <Wrench className="w-3.5 h-3.5" />
-                    <span>Direct Service Consultation</span>
-                  </div>
-                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
-                    {currentService.formHeading || `Get Free Quote for ${currentService.shortTitle || currentService.title}`}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-luxury-muted mt-1 leading-relaxed">
-                    {currentService.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${currentService.title}.`}
-                  </p>
-                </div>
-
-                {errorMessage && (
-                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errorMessage}</span>
-                  </div>
-                )}
-
-                {/* Dynamic Form Fields Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {formFields.map((field) => {
-                    const isFullWidth = field.type === 'textarea' || field.type === 'file' || field.type === 'image' || field.id === 'address';
-
-                    return (
-                      <div key={field.id} className={isFullWidth ? 'col-span-full' : 'col-span-1'}>
-                        <label htmlFor={field.id} className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
-                          {field.label} {field.required ? <span className="text-red-500">*</span> : <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>}
-                        </label>
-
-                        {field.type === 'tel' ? (
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-luxury-muted">
-                              +91
-                            </span>
-                            <input
-                              id={field.id}
-                              type="tel"
-                              name={field.id}
-                              value={formData[field.id] || ''}
-                              onChange={handleChange}
-                              placeholder={field.placeholder || '98765 43210'}
-                              className={`w-full pl-12 pr-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                                errors[field.id] ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                              }`}
-                            />
-                          </div>
-                        ) : field.type === 'select' ? (
-                          <select
-                            id={field.id}
-                            name={field.id}
-                            value={formData[field.id] || (field.options?.[0] || '')}
-                            onChange={handleChange}
-                            className="w-full px-3.5 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold"
-                          >
-                            {(field.options || []).map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : field.type === 'file' || field.type === 'image' ? (
-                          <div className="space-y-1.5">
-                            {formData[field.id] ? (
-                              <div className="p-3.5 rounded-2xl bg-luxury-surface/80 border border-luxury-gold/40 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  {formData[field.id].startsWith('http') || formData[field.id].startsWith('data:') ? (
-                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-walnut shrink-0 border border-luxury-gold/40 shadow-xs">
-                                      <img src={formData[field.id]} alt="Attachment Preview" className="w-full h-full object-cover" />
-                                    </div>
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
-                                      <FileText className="w-5 h-5" />
-                                    </div>
-                                  )}
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-bold text-luxury-walnut flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                      <span>Attachment Attached</span>
-                                    </span>
-                                    <span className="text-[10px] text-luxury-muted block truncate max-w-xs font-mono mt-0.5">
-                                      {formData[field.id].startsWith('http') ? 'Cloudinary File Uploaded' : 'Uploaded file'}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <label className="px-3 py-1.5 rounded-xl bg-luxury-gold/20 hover:bg-luxury-gold/30 text-luxury-gold-dark text-xs font-bold cursor-pointer transition-colors">
-                                    <span>Change</span>
-                                    <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])} className="hidden" />
-                                  </label>
-                                  <button
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, [field.id]: '' }))}
-                                    className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 transition-colors cursor-pointer"
-                                    title="Remove File"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="p-4 rounded-2xl bg-luxury-surface/70 border-2 border-dashed border-luxury-gold/40 hover:border-luxury-gold flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left transition-colors">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-9 h-9 rounded-xl bg-luxury-gold/20 text-luxury-gold flex items-center justify-center shrink-0 mx-auto sm:mx-0">
-                                    <Upload className="w-4 h-4" />
-                                  </div>
-                                  <div>
-                                    <span className="text-xs font-bold text-luxury-walnut block">
-                                      {field.placeholder || 'Upload Floor Plan, Photos or Design PDF'}
-                                    </span>
-                                    <span className="text-[10px] text-luxury-muted block">
-                                      Supports JPG, PNG, WEBP, PDF (Max 5MB)
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <label className="px-4 py-2 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider cursor-pointer shadow-xs transition-transform active:scale-95 shrink-0 flex items-center gap-1.5 mx-auto sm:mx-0">
-                                  {uploadingFieldId === field.id ? (
-                                    <>
-                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                      <span>Uploading...</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="w-3.5 h-3.5" />
-                                      <span>Browse File</span>
-                                    </>
-                                  )}
-                                  <input
-                                    type="file"
-                                    accept="image/*,application/pdf"
-                                    disabled={uploadingFieldId === field.id}
-                                    onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])}
-                                    className="hidden"
-                                  />
-                                </label>
-                              </div>
-                            )}
-
-                            {fieldUploadError[field.id] && (
-                              <p className="text-[11px] text-red-500 font-semibold">{fieldUploadError[field.id]}</p>
-                            )}
-                          </div>
-                        ) : field.type === 'textarea' ? (
-                          <textarea
-                            id={field.id}
-                            name={field.id}
-                            rows={3}
-                            value={formData[field.id] || ''}
-                            onChange={handleChange}
-                            placeholder={field.placeholder || 'Describe your floor plan, dimensions, or specific design preferences...'}
-                            className="w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold resize-none"
-                          />
-                        ) : (
-                          <input
-                            id={field.id}
-                            type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : 'text'}
-                            name={field.id}
-                            value={formData[field.id] || ''}
-                            onChange={handleChange}
-                            placeholder={field.placeholder || ''}
-                            className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                              errors[field.id] ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
-                            }`}
-                          />
-                        )}
-
-                        {errors[field.id] && <p className="text-[11px] text-red-500 mt-1">{errors[field.id]}</p>}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-gradient-to-r from-luxury-gold via-yellow-500 to-luxury-gold-warm text-luxury-walnut font-bold text-xs sm:text-sm uppercase tracking-wider shadow-gold-glow hover:shadow-gold-glow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Processing Your Request...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>{currentService.submitButtonText || `Request Free Quote for ${currentService.shortTitle || currentService.title}`}</span>
-                    </>
-                  )}
-                </button>
-
-                <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-luxury-muted gap-2 pt-1 border-t border-luxury-border">
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-luxury-gold" />
-                    100% Free Site Measurement Visit
-                  </span>
-                  <span>🔒 Direct workshop pricing • Zero commission markups</span>
-                </div>
-              </form>
-            )}
           </div>
 
         </div>
