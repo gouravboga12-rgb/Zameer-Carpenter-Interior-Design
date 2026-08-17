@@ -79,15 +79,41 @@ function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedSe
 }
 
 function mergeInquiries(localList, remoteList) {
-  const map = new Map();
-  (remoteList || []).forEach(item => map.set(item.id || item.phone + '_' + item.created_at, item));
-  (localList || []).forEach(item => {
-    const key = item.id || item.phone + '_' + item.created_at;
-    if (!map.has(key)) {
-      map.set(key, item);
+  const dedupMap = new Map();
+
+  const getDedupKey = (item) => {
+    if (!item) return '';
+    const phone = (item.phone || '').replace(/[^\d]/g, '').slice(-10);
+    const name = (item.name || '').trim().toLowerCase();
+    const service = (item.service_title || item.service_id || item.property_type || '').trim().toLowerCase();
+    const dateStr = item.created_at ? new Date(item.created_at).toISOString().slice(0, 10) : 'today';
+    return `${phone}_${name}_${service}_${dateStr}`;
+  };
+
+  // 1. Add remote items
+  (remoteList || []).forEach(remoteItem => {
+    const key = getDedupKey(remoteItem) || remoteItem.id;
+    dedupMap.set(key, remoteItem);
+  });
+
+  // 2. Merge local items without duplication
+  (localList || []).forEach(localItem => {
+    const key = getDedupKey(localItem) || localItem.id;
+    if (dedupMap.has(key)) {
+      const existing = dedupMap.get(key);
+      dedupMap.set(key, {
+        ...existing,
+        email: existing.email || localItem.email || '',
+        notes: existing.notes || localItem.notes || '',
+        location: existing.location || localItem.location || '',
+        property_type: existing.property_type || localItem.property_type || ''
+      });
+    } else {
+      dedupMap.set(key, localItem);
     }
   });
-  return Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+  return Array.from(dedupMap.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
 export function AdminDataProvider({ children }) {
@@ -237,8 +263,9 @@ export function AdminDataProvider({ children }) {
 
   // Service Form Submission (Saves to Admin + Supabase + Triggers WhatsApp)
   const submitServiceInquiry = async (formData) => {
+    const tempId = 'sinq_' + Date.now();
     const newEntry = {
-      id: 'sinq_' + Date.now(),
+      id: tempId,
       service_id: formData.serviceId || 'general',
       service_title: formData.serviceTitle || formData.service || 'Complete Interiors',
       name: formData.name || 'Anonymous',
@@ -251,25 +278,34 @@ export function AdminDataProvider({ children }) {
       created_at: new Date().toISOString()
     };
 
-    // Update Local State & Cache Immediately
+    // Update Local State & Cache Immediately with deduplication
     setServiceInquiries(prev => {
-      const updated = [newEntry, ...prev];
-      localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
-      return updated;
+      const merged = mergeInquiries([newEntry], prev);
+      localStorage.setItem('zameer_service_inquiries', JSON.stringify(merged));
+      return merged;
     });
 
-    // Try Supabase Insert
+    // Try Supabase Insert (with email included)
     try {
-      await supabase.from('service_inquiries').insert([{
+      const { data } = await supabase.from('service_inquiries').insert([{
         service_id: newEntry.service_id,
         service_title: newEntry.service_title,
         name: newEntry.name,
         phone: newEntry.phone,
+        email: newEntry.email,
         location: newEntry.location,
         property_type: newEntry.property_type,
         notes: newEntry.notes,
         status: newEntry.status
-      }]);
+      }]).select();
+
+      if (data && data[0] && data[0].id) {
+        setServiceInquiries(prev => {
+          const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
+          localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+          return updated;
+        });
+      }
     } catch (e) {
       console.warn('Saved locally, Supabase insert deferred:', e);
     }
@@ -290,8 +326,9 @@ export function AdminDataProvider({ children }) {
 
   // Contact Page Consultation Submission (Saves to Admin + Supabase + Triggers WhatsApp)
   const submitContactInquiry = async (formData) => {
+    const tempId = 'cinq_' + Date.now();
     const newEntry = {
-      id: 'cinq_' + Date.now(),
+      id: tempId,
       name: formData.name || 'Anonymous',
       phone: formData.phone || '',
       email: formData.email || '',
@@ -303,16 +340,16 @@ export function AdminDataProvider({ children }) {
       created_at: new Date().toISOString()
     };
 
-    // Update Local State & Cache Immediately
+    // Update Local State & Cache Immediately with deduplication
     setContactInquiries(prev => {
-      const updated = [newEntry, ...prev];
-      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
-      return updated;
+      const merged = mergeInquiries([newEntry], prev);
+      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(merged));
+      return merged;
     });
 
     // Try Supabase Insert
     try {
-      await supabase.from('contact_inquiries').insert([{
+      const { data } = await supabase.from('contact_inquiries').insert([{
         name: newEntry.name,
         phone: newEntry.phone,
         email: newEntry.email,
@@ -321,7 +358,15 @@ export function AdminDataProvider({ children }) {
         project_timeline: newEntry.project_timeline,
         notes: newEntry.notes,
         status: newEntry.status
-      }]);
+      }]).select();
+
+      if (data && data[0] && data[0].id) {
+        setContactInquiries(prev => {
+          const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
+          localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+          return updated;
+        });
+      }
     } catch (e) {
       console.warn('Saved locally, Supabase insert deferred:', e);
     }
