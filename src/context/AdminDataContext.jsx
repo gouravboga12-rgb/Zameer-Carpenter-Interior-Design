@@ -15,6 +15,43 @@ export const ADMIN_CREDENTIALS = {
 const DEFAULT_PROJECTS = [...PORTFOLIO_PROJECTS, ...REAL_PROJECT_VIDEOS];
 const DEFAULT_SERVICES = SERVICES_DATA;
 
+export function safeLocalStorageSet(key, value) {
+  try {
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+    localStorage.setItem(key, serialized);
+  } catch (err) {
+    console.warn(`[SafeStorage] localStorage quota reached on "${key}". Applying resilient storage.`);
+    try {
+      if (Array.isArray(value)) {
+        // Strip heavy base64 strings from local cache to stay within 5MB browser quota
+        const compactArray = value.map(item => {
+          if (!item || typeof item !== 'object') return item;
+          const clone = { ...item };
+          if (clone.image && typeof clone.image === 'string' && clone.image.startsWith('data:') && clone.image.length > 300) {
+            clone.image = '';
+          }
+          if (clone.custom_fields && typeof clone.custom_fields === 'object') {
+            const cleanCustom = { ...clone.custom_fields };
+            for (const [k, v] of Object.entries(cleanCustom)) {
+              if (typeof v === 'string' && v.startsWith('data:') && v.length > 300) {
+                cleanCustom[k] = '[File Attached in Database]';
+              }
+            }
+            clone.custom_fields = cleanCustom;
+          }
+          return clone;
+        });
+        localStorage.setItem(key, JSON.stringify(compactArray));
+      } else {
+        try { localStorage.removeItem('zameer_projects_cache'); } catch (e) {}
+        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      }
+    } catch (innerErr) {
+      console.warn(`[SafeStorage] Memory quota exceeded; state preserved in memory & Supabase.`);
+    }
+  }
+}
+
 function getDeletedProjectIds() {
   try {
     return JSON.parse(localStorage.getItem('zameer_deleted_project_ids') || '[]');
@@ -421,7 +458,7 @@ export function AdminDataProvider({ children }) {
         });
         const mergedServices = mergeServicesWithDefaults(formatted);
         setServices(mergedServices);
-        localStorage.setItem('zameer_services_cache', JSON.stringify(mergedServices));
+        safeLocalStorageSet('zameer_services_cache', mergedServices);
       }
 
       // Sync Projects
@@ -443,21 +480,21 @@ export function AdminDataProvider({ children }) {
         }));
         const mergedProjects = mergeProjectsWithDefaults(formattedP);
         setProjects(mergedProjects);
-        localStorage.setItem('zameer_projects_cache', JSON.stringify(mergedProjects));
+        safeLocalStorageSet('zameer_projects_cache', mergedProjects);
       }
 
       // Sync Service Inquiries directly from database as single source of truth across all devices
       const { data: dbSInquiries, error: sinqErr } = await supabase.from('service_inquiries').select('*').order('created_at', { ascending: false });
       if (!sinqErr && dbSInquiries) {
         setServiceInquiries(dbSInquiries);
-        localStorage.setItem('zameer_service_inquiries', JSON.stringify(dbSInquiries));
+        safeLocalStorageSet('zameer_service_inquiries', dbSInquiries);
       }
 
       // Sync Contact Inquiries directly from database as single source of truth across all devices
       const { data: dbCInquiries, error: cinqErr } = await supabase.from('contact_inquiries').select('*').order('created_at', { ascending: false });
       if (!cinqErr && dbCInquiries) {
         setContactInquiries(dbCInquiries);
-        localStorage.setItem('zameer_contact_inquiries', JSON.stringify(dbCInquiries));
+        safeLocalStorageSet('zameer_contact_inquiries', dbCInquiries);
       }
 
       // Sync Settings
@@ -476,7 +513,7 @@ export function AdminDataProvider({ children }) {
           workingHours: dbSettings.working_hours || '9:00 AM – 9:00 PM'
         };
         setSettings(setObj);
-        localStorage.setItem('zameer_settings_cache', JSON.stringify(setObj));
+        safeLocalStorageSet('zameer_settings_cache', setObj);
       }
     } catch (err) {
       console.warn('Supabase sync notice (using cached/fallback state):', err);
@@ -487,7 +524,7 @@ export function AdminDataProvider({ children }) {
   const loginAdmin = (email, password) => {
     if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       setIsAdminAuthenticated(true);
-      localStorage.setItem('zameer_admin_auth', 'true');
+      safeLocalStorageSet('zameer_admin_auth', 'true');
       return { success: true };
     }
     return { success: false, error: 'Invalid admin email or password' };
@@ -519,7 +556,7 @@ export function AdminDataProvider({ children }) {
     // Update Local State & Cache Immediately with deduplication
     setServiceInquiries(prev => {
       const merged = mergeInquiries([newEntry], prev);
-      localStorage.setItem('zameer_service_inquiries', JSON.stringify(merged));
+      safeLocalStorageSet('zameer_service_inquiries', merged);
       return merged;
     });
 
@@ -561,7 +598,7 @@ export function AdminDataProvider({ children }) {
       } else if (data && data[0] && data[0].id) {
         setServiceInquiries(prev => {
           const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
-          localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+          safeLocalStorageSet('zameer_service_inquiries', updated);
           return updated;
         });
       }
@@ -602,7 +639,7 @@ export function AdminDataProvider({ children }) {
     // Update Local State & Cache Immediately with deduplication
     setContactInquiries(prev => {
       const merged = mergeInquiries([newEntry], prev);
-      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(merged));
+      safeLocalStorageSet('zameer_contact_inquiries', merged);
       return merged;
     });
 
@@ -624,7 +661,7 @@ export function AdminDataProvider({ children }) {
       } else if (data && data[0] && data[0].id) {
         setContactInquiries(prev => {
           const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
-          localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+          safeLocalStorageSet('zameer_contact_inquiries', updated);
           return updated;
         });
       }
@@ -674,7 +711,7 @@ export function AdminDataProvider({ children }) {
 
     const updated = [...services.filter(s => s.id !== sId), serviceObj];
     setServices(updated);
-    localStorage.setItem('zameer_services_cache', JSON.stringify(updated));
+    safeLocalStorageSet('zameer_services_cache', updated);
 
     const config = {
       formFields: serviceObj.formFields,
@@ -728,7 +765,7 @@ export function AdminDataProvider({ children }) {
   const updateService = async (id, updatedFields) => {
     const updated = services.map(s => s.id === id ? { ...s, ...updatedFields } : s);
     setServices(updated);
-    localStorage.setItem('zameer_services_cache', JSON.stringify(updated));
+    safeLocalStorageSet('zameer_services_cache', updated);
 
     const target = updated.find(s => s.id === id);
     if (target) {
@@ -786,11 +823,11 @@ export function AdminDataProvider({ children }) {
     const deletedIds = getDeletedServiceIds();
     if (!deletedIds.includes(id)) {
       deletedIds.push(id);
-      localStorage.setItem('zameer_deleted_service_ids', JSON.stringify(deletedIds));
+      safeLocalStorageSet('zameer_deleted_service_ids', deletedIds);
     }
     const updated = services.filter(s => s.id !== id);
     setServices(updated);
-    localStorage.setItem('zameer_services_cache', JSON.stringify(updated));
+    safeLocalStorageSet('zameer_services_cache', updated);
 
     try {
       await supabase.from('services').delete().eq('id', id);
@@ -819,7 +856,7 @@ export function AdminDataProvider({ children }) {
 
     setProjects(prev => {
       const updated = [projObj, ...prev.filter(p => p.id !== pId)];
-      localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_projects_cache', updated);
       return updated;
     });
 
@@ -846,7 +883,7 @@ export function AdminDataProvider({ children }) {
   const updateProject = async (id, updatedFields) => {
     const updated = projects.map(p => p.id === id ? { ...p, ...updatedFields } : p);
     setProjects(updated);
-    localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+    safeLocalStorageSet('zameer_projects_cache', updated);
 
     const target = updated.find(p => p.id === id);
     if (target) {
@@ -875,11 +912,11 @@ export function AdminDataProvider({ children }) {
     const deletedIds = getDeletedProjectIds();
     if (!deletedIds.includes(id)) {
       deletedIds.push(id);
-      localStorage.setItem('zameer_deleted_project_ids', JSON.stringify(deletedIds));
+      safeLocalStorageSet('zameer_deleted_project_ids', deletedIds);
     }
     setProjects(prev => {
       const updated = prev.filter(p => p.id !== id);
-      localStorage.setItem('zameer_projects_cache', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_projects_cache', updated);
       return updated;
     });
 
@@ -895,14 +932,14 @@ export function AdminDataProvider({ children }) {
     if (type === 'service') {
       const updated = serviceInquiries.map(item => item.id === id ? { ...item, status } : item);
       setServiceInquiries(updated);
-      localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_service_inquiries', updated);
       try {
         await supabase.from('service_inquiries').update({ status }).eq('id', id);
       } catch (e) {}
     } else {
       const updated = contactInquiries.map(item => item.id === id ? { ...item, status } : item);
       setContactInquiries(updated);
-      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_contact_inquiries', updated);
       try {
         await supabase.from('contact_inquiries').update({ status }).eq('id', id);
       } catch (e) {}
@@ -913,14 +950,14 @@ export function AdminDataProvider({ children }) {
     if (type === 'service') {
       const updated = serviceInquiries.filter(item => item.id !== id);
       setServiceInquiries(updated);
-      localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_service_inquiries', updated);
       try {
         await supabase.from('service_inquiries').delete().eq('id', id);
       } catch (e) {}
     } else {
       const updated = contactInquiries.filter(item => item.id !== id);
       setContactInquiries(updated);
-      localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
+      safeLocalStorageSet('zameer_contact_inquiries', updated);
       try {
         await supabase.from('contact_inquiries').delete().eq('id', id);
       } catch (e) {}
@@ -931,7 +968,7 @@ export function AdminDataProvider({ children }) {
   const updateSettings = async (newSettings) => {
     const merged = { ...settings, ...newSettings };
     setSettings(merged);
-    localStorage.setItem('zameer_settings_cache', JSON.stringify(merged));
+    safeLocalStorageSet('zameer_settings_cache', merged);
 
     try {
       await supabase.from('company_settings').upsert([{
