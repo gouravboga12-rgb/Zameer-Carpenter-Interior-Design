@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { SERVICES_DATA } from '../data/servicesData';
 import { PORTFOLIO_PROJECTS, REAL_PROJECT_VIDEOS } from '../data/portfolioData';
 import { COMPANY_INFO } from '../data/companyInfo';
-import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl, getConsultationWhatsAppUrl } from '../utils/whatsapp';
+import { getServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl, getConsultationWhatsAppUrl, getDedicatedServiceInquiryWhatsAppUrl } from '../utils/whatsapp';
 
 const AdminDataContext = createContext(null);
 
@@ -173,8 +173,9 @@ export function AdminDataProvider({ children }) {
       service_title: formData.serviceTitle || formData.service || 'Complete Interiors',
       name: formData.name || 'Anonymous',
       phone: formData.phone || '',
-      location: formData.location || 'Hyderabad',
-      property_type: formData.propertyType || formData.spaceType || 'Residential',
+      email: formData.email || '',
+      location: formData.location || formData.address || 'Direct Inquiry',
+      property_type: formData.propertyType || formData.spaceType || 'Residential Space',
       notes: formData.notes || formData.message || '',
       status: 'New',
       created_at: new Date().toISOString()
@@ -204,12 +205,14 @@ export function AdminDataProvider({ children }) {
     }
 
     // Build WhatsApp URL with full details & Open
-    const waUrl = getConsultationWhatsAppUrl({
+    const waUrl = getDedicatedServiceInquiryWhatsAppUrl({
       name: newEntry.name,
       phone: newEntry.phone,
-      service: newEntry.service_title,
+      email: newEntry.email,
+      serviceTitle: newEntry.service_title,
+      address: newEntry.location,
       spaceType: newEntry.property_type,
-      message: newEntry.notes
+      notes: newEntry.notes
     });
     window.open(waUrl, '_blank');
     return newEntry;

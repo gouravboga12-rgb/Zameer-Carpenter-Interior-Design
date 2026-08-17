@@ -1,0 +1,623 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Home, CookingPot, Hammer, DoorOpen, Tv, Building2, 
+  CheckCircle2, ArrowRight, ArrowLeft, MessageSquare, Phone, 
+  MapPin, Clock, Sparkles, ShieldCheck, Send, Loader2, 
+  AlertCircle, Check, Wrench, Mail
+} from 'lucide-react';
+import { SERVICES_DATA } from '../data/servicesData';
+import { COMPANY_INFO } from '../data/companyInfo';
+import { useAdminData } from '../context/AdminDataContext';
+import { getDedicatedServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
+
+const SERVICE_ICONS = {
+  Home,
+  CookingPot,
+  Hammer,
+  DoorOpen,
+  Tv,
+  Building2
+};
+
+// Clean tailored property types per service (with 1 BHK included)
+const SERVICE_PROPERTY_TYPES = {
+  'complete-home-interiors': [
+    '1 BHK Apartment',
+    '2 BHK Apartment',
+    '3 BHK Apartment',
+    '4 BHK / Penthouse',
+    'Villa / Duplex House',
+    'Independent House',
+    'Full Home Renovation'
+  ],
+  'modular-kitchen-furniture': [
+    '1 BHK Apartment Kitchen',
+    '2 BHK / 3 BHK Apartment Kitchen',
+    '4 BHK / Penthouse Kitchen',
+    'Villa / Independent House Kitchen',
+    'Kitchen Remodeling / Renovation',
+    'Commercial / Office Pantry'
+  ],
+  'custom-carpentry-woodwork': [
+    '1 BHK / 2 BHK Apartment',
+    '3 BHK / 4 BHK Apartment',
+    'Villa / Independent House',
+    'Commercial Office / Shop',
+    'Existing Home Woodwork Modification'
+  ],
+  'wardrobes-storage-solutions': [
+    '1 BHK Apartment (Bedroom Wardrobe)',
+    '2 BHK / 3 BHK Apartment Wardrobes',
+    '4 BHK / Villa Wardrobes',
+    'Master Bedroom Only',
+    'Walk-in Closet / Loft Storage'
+  ],
+  'tv-units-wall-panels-ceilings': [
+    '1 BHK / 2 BHK Hall TV Unit',
+    '3 BHK / 4 BHK Living Room TV Unit & Ceiling',
+    'Master Bedroom TV & Accent Wall',
+    'Villa / Duplex Hall & Ceilings',
+    'Office / Commercial Feature Wall'
+  ],
+  'commercial-interiors-renovation': [
+    'Corporate Office / Workspace',
+    'Retail Shop / Showroom',
+    'Cafe / Restaurant',
+    'Clinic / Salon / Studio',
+    '1BHK / 2BHK / 3BHK Full Home Renovation'
+  ]
+};
+
+export default function ServiceInquiryPage() {
+  const { serviceId } = useParams();
+  const navigate = useNavigate();
+  const { services, submitServiceInquiry } = useAdminData();
+  
+  const servicesList = services && services.length > 0 ? services : SERVICES_DATA;
+  
+  // Find current service or fallback
+  const currentService = servicesList.find((s) => s.id === serviceId) || servicesList[0];
+  const ServiceIcon = SERVICE_ICONS[currentService?.iconName] || Home;
+
+  const propertyTypes = SERVICE_PROPERTY_TYPES[currentService?.id] || [
+    '1 BHK Apartment',
+    '2 BHK Apartment',
+    '3 BHK Apartment',
+    '4 BHK / Penthouse',
+    'Villa / Duplex House',
+    'Independent House',
+    'Commercial / Other'
+  ];
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    propertyType: propertyTypes[0],
+    address: '',
+    notes: ''
+  });
+
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Reset form when serviceId changes
+  useEffect(() => {
+    if (currentService) {
+      const types = SERVICE_PROPERTY_TYPES[currentService.id] || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        'Villa / Duplex',
+        'Other'
+      ];
+      setFormData(prev => ({
+        ...prev,
+        propertyType: types[0]
+      }));
+      setErrors({});
+      setIsSuccess(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [serviceId, currentService]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      errs.name = 'Please enter your full name (at least 2 characters).';
+    }
+
+    const cleanPhone = formData.phone.replace(/[^\d]/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      errs.phone = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    if (!formData.address.trim() || formData.address.trim().length < 3) {
+      errs.address = 'Please enter your property address or location.';
+    }
+
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errs.email = 'Please enter a valid email address.';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      await submitServiceInquiry({
+        serviceId: currentService.id,
+        serviceTitle: currentService.title,
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        address: formData.address.trim(),
+        location: formData.address.trim(),
+        propertyType: formData.propertyType,
+        notes: formData.notes.trim()
+      });
+
+      setIsSuccess(true);
+    } catch (err) {
+      setErrorMessage('Unable to process your request at this moment. Please reach us directly via WhatsApp.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      propertyType: propertyTypes[0],
+      address: '',
+      notes: ''
+    });
+    setErrors({});
+    setIsSuccess(false);
+  };
+
+  const directWhatsAppUrl = getDedicatedServiceInquiryWhatsAppUrl({
+    name: formData.name,
+    phone: formData.phone,
+    email: formData.email,
+    serviceTitle: currentService.title,
+    address: formData.address,
+    spaceType: formData.propertyType,
+    notes: formData.notes
+  });
+
+  return (
+    <div className="pt-24 sm:pt-28 pb-20 bg-luxury-bg min-h-screen">
+      
+      {/* Main 2-Column Section: Service Information + Dedicated Contact Form */}
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-xs text-luxury-muted mb-6">
+          <Link to="/" className="hover:text-luxury-gold-dark transition-colors font-medium">Home</Link>
+          <span>/</span>
+          <Link to="/services" className="hover:text-luxury-gold-dark transition-colors font-medium">Services</Link>
+          <span>/</span>
+          <span className="text-luxury-walnut font-bold">{currentService.shortTitle}</span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          
+          {/* Left Column: Visual Showcase, Scope Highlights & Assurances (5 Cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Service Visual Card */}
+            <div className="luxury-card rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/30">
+              <div className="relative aspect-[16/11] overflow-hidden bg-luxury-walnut">
+                <img
+                  src={currentService.image}
+                  alt={currentService.title}
+                  className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-luxury-walnut/90 via-luxury-walnut/20 to-transparent" />
+                
+                {/* Highlight Tag */}
+                <div className="absolute top-4 left-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-luxury-walnut/90 backdrop-blur-md border border-luxury-gold/50 text-luxury-gold text-xs font-bold shadow-md">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{currentService.highlight}</span>
+                  </span>
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 text-[#FDFBF7]">
+                  <p className="text-xs font-light text-gray-300">Hyderabad Precision Workshop</p>
+                  <p className="text-sm font-bold font-heading text-luxury-gold">{currentService.title}</p>
+                </div>
+              </div>
+
+              {/* Service Description Box */}
+              <div className="p-6 space-y-4">
+                <p className="text-xs sm:text-sm text-luxury-muted leading-relaxed">
+                  {currentService.description}
+                </p>
+
+                {/* Craftsmanship Assurances */}
+                <div className="pt-3 border-t border-luxury-border space-y-2.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5 font-cinzel">
+                    <ShieldCheck className="w-4 h-4 text-luxury-gold" />
+                    Quality & Execution Assurances:
+                  </h4>
+                  
+                  <div className="space-y-1.5">
+                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
+                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
+                      <span>IS:710 Marine-Grade 100% Boiling-Water-Proof Plywood</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
+                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
+                      <span>Authentic German Soft-Close Fittings (Blum / Hettich / Hafele)</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
+                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
+                      <span>In-house Tolichowki master carpenters with zero middleman markups</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
+                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
+                      <span>Millimeter laser site measurement and 3D preview before fabrication</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Direct Workshop & Studio Info Card */}
+            <div className="bg-luxury-card rounded-2xl p-5 border border-luxury-gold/30 shadow-luxury space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
+                    Service Area Coverage
+                  </h4>
+                  <p className="text-xs text-luxury-muted mt-0.5">
+                    Direct on-site consultation, precision laser measurement & turnkey execution for all residential and commercial projects.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2.5 border-t border-luxury-border">
+                <div className="w-8 h-8 rounded-lg bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel">
+                    Site Visit Availability
+                  </h4>
+                  <p className="text-xs text-luxury-muted mt-0.5">
+                    Monday to Sunday (9:00 AM – 9:00 PM)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column: Dedicated Service Contact Detail Form (7 Cols) */}
+          <div className="lg:col-span-7">
+            {isSuccess ? (
+              /* Success Screen */
+              <div className="bg-luxury-card rounded-3xl p-8 sm:p-12 border-2 border-luxury-gold shadow-2xl text-center space-y-6 animate-fadeIn">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
+                    Inquiry Successfully Logged
+                  </span>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
+                    Thank You, {formData.name}!
+                  </h2>
+                  <p className="text-sm text-luxury-muted max-w-lg mx-auto leading-relaxed">
+                    Your direct inquiry for <strong className="text-luxury-walnut">{currentService.title}</strong> has been registered. Our design lead Zameer will review your requirements and call you at <strong className="text-luxury-walnut">{formData.phone}</strong> for your free site consultation.
+                  </p>
+                </div>
+
+                {/* Summary Card */}
+                <div className="bg-luxury-surface p-4 rounded-2xl border border-luxury-border text-left text-xs space-y-2 max-w-md mx-auto">
+                  <div className="flex justify-between py-1 border-b border-luxury-border">
+                    <span className="text-luxury-muted font-medium">Service:</span>
+                    <span className="font-bold text-luxury-walnut">{currentService.title}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-luxury-border">
+                    <span className="text-luxury-muted font-medium">Property Address:</span>
+                    <span className="font-bold text-luxury-walnut">{formData.address}</span>
+                  </div>
+                  {formData.email && (
+                    <div className="flex justify-between py-1 border-b border-luxury-border">
+                      <span className="text-luxury-muted font-medium">Email:</span>
+                      <span className="font-bold text-luxury-walnut">{formData.email}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-1">
+                    <span className="text-luxury-muted font-medium">Space / Property:</span>
+                    <span className="font-bold text-luxury-walnut">{formData.propertyType}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-4 border-t border-luxury-border flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a
+                    href={directWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Fast-Track on WhatsApp</span>
+                  </a>
+
+                  <button
+                    onClick={handleReset}
+                    className="w-full sm:w-auto py-3.5 px-5 rounded-xl bg-luxury-surface hover:bg-luxury-border text-luxury-charcoal font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Submit Another Inquiry
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Dedicated Form */
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="bg-luxury-card rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-luxury-gold/40 shadow-2xl space-y-6"
+              >
+                {/* Form Header */}
+                <div className="pb-4 border-b border-luxury-border">
+                  <div className="flex items-center gap-2 text-luxury-gold-dark font-cinzel text-xs font-bold uppercase tracking-wider mb-1">
+                    <Wrench className="w-3.5 h-3.5" />
+                    <span>Direct Service Consultation</span>
+                  </div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
+                    Get Free Quote for {currentService.shortTitle}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-luxury-muted mt-1 leading-relaxed">
+                    Schedule a free laser site measurement and get a transparent itemized estimate for <strong className="text-luxury-walnut">{currentService.title}</strong>.
+                  </p>
+                </div>
+
+                {errorMessage && (
+                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* 1. Customer Name & Mobile Number */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div>
+                    <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. Mohammed Ahmed"
+                      className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                        errors.name ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                      }`}
+                    />
+                    {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div>
+                    <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-luxury-muted">
+                        +91
+                      </span>
+                      <input
+                        id="phone"
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="98765 43210"
+                        className={`w-full pl-12 pr-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                          errors.phone ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-[11px] text-red-500 mt-1">{errors.phone}</p>}
+                  </div>
+                </div>
+
+                {/* 2. Email Address (Optional) & Space/Property Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Email (Optional) */}
+                  <div>
+                    <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                      Email Address <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="e.g. ahmed@gmail.com"
+                        className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                          errors.email ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                        }`}
+                      />
+                    </div>
+                    {errors.email && <p className="text-[11px] text-red-500 mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* Space / Property Type (With 1 BHK included) */}
+                  <div>
+                    <label htmlFor="propertyType" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                      Space / Property Type
+                    </label>
+                    <select
+                      id="propertyType"
+                      name="propertyType"
+                      value={formData.propertyType}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold"
+                    >
+                      {propertyTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 3. Address Text Box */}
+                <div>
+                  <label htmlFor="address" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                    Property Address / Location <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="address"
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="e.g. Flat / House No, Apartment Name, Area, City"
+                    className={`w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border text-xs sm:text-sm text-luxury-charcoal focus:outline-none transition-colors ${
+                      errors.address ? 'border-red-400 bg-red-50/50' : 'border-luxury-border focus:border-luxury-gold'
+                    }`}
+                  />
+                  {errors.address && <p className="text-[11px] text-red-500 mt-1">{errors.address}</p>}
+                </div>
+
+                {/* 4. Specific Requirements / Dimensions Notes (Optional) */}
+                <div>
+                  <label htmlFor="notes" className="block text-xs font-bold uppercase tracking-wider text-luxury-charcoal font-cinzel mb-1.5">
+                    Project Notes & Dimensions <span className="text-luxury-muted font-normal text-[11px] lowercase">(optional)</span>
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    rows={3}
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder={`Tell us about room sizes, preferred finishes (Acrylic, PU, Teak, Veneer), or specific ideas for ${currentService.shortTitle}...`}
+                    className="w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold resize-none"
+                  />
+                </div>
+
+                {/* 5. Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-gradient-to-r from-luxury-gold via-yellow-500 to-luxury-gold-warm text-luxury-walnut font-bold text-xs sm:text-sm uppercase tracking-wider shadow-gold-glow hover:shadow-gold-glow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Processing Your Request...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Request Free Quote for {currentService.shortTitle}</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-luxury-muted gap-2 pt-1 border-t border-luxury-border">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-luxury-gold" />
+                    100% Free Site Measurement Visit
+                  </span>
+                  <span>🔒 Direct workshop pricing • Zero commission markups</span>
+                </div>
+              </form>
+            )}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. Switcher to Explore Other Service Form Pages */}
+      <section className="py-12 bg-luxury-surface/50 border-t border-luxury-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
+              Explore More Verticals
+            </span>
+            <h3 className="font-heading text-2xl font-bold text-luxury-walnut mt-1">
+              Need Inquiries for Other Services?
+            </h3>
+            <p className="text-xs text-luxury-muted mt-1">
+              Switch directly to any service form below to request tailored site measurements.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {servicesList.map((service) => {
+              const Icon = SERVICE_ICONS[service.iconName] || Home;
+              const isCurrent = service.id === currentService.id;
+
+              return (
+                <Link
+                  key={service.id}
+                  to={`/services/${service.id}/inquiry`}
+                  className={`p-4 rounded-2xl flex flex-col items-center text-center gap-2 transition-all border ${
+                    isCurrent
+                      ? 'bg-luxury-walnut text-luxury-gold border-luxury-gold shadow-md pointer-events-none'
+                      : 'bg-luxury-card text-luxury-charcoal hover:text-luxury-walnut hover:border-luxury-gold/50 border-luxury-border shadow-xs hover:scale-102'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    isCurrent ? 'bg-luxury-gold text-luxury-walnut' : 'bg-luxury-surface text-luxury-charcoal'
+                  }`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold leading-tight font-heading">
+                    {service.shortTitle}
+                  </span>
+                  <span className="text-[10px] text-luxury-gold-dark font-semibold mt-0.5">
+                    {isCurrent ? 'Current' : 'Get Quote →'}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+    </div>
+  );
+}

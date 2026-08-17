@@ -11,6 +11,7 @@ import { AdminDataProvider } from './context/AdminDataContext';
 import HomePage from './pages/HomePage';
 import AboutUsPage from './pages/AboutUsPage';
 import ServicesPage from './pages/ServicesPage';
+import ServiceInquiryPage from './pages/ServiceInquiryPage';
 import RecentProjectsPage from './pages/RecentProjectsPage';
 import ContactPage from './pages/ContactPage';
 import AdminPage from './pages/admin/AdminPage';
@@ -57,6 +58,9 @@ function AppLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutUsPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/:serviceId" element={<ServiceInquiryPage />} />
+          <Route path="/services/:serviceId/inquiry" element={<ServiceInquiryPage />} />
+          <Route path="/services/:serviceId/contact" element={<ServiceInquiryPage />} />
           <Route path="/projects" element={<RecentProjectsPage />} />
           <Route path="/recent-projects" element={<RecentProjectsPage />} />
           <Route path="/contact" element={<ContactPage />} />

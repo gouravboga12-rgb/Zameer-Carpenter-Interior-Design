@@ -150,12 +150,12 @@ export default function ServicesSection() {
                 </div>
 
                 {/* Action CTA */}
-                <div className="pt-4 border-t border-luxury-border/80 flex items-center justify-center sm:justify-start">
+                <div className="pt-4 border-t border-luxury-border/80 flex items-center justify-center sm:justify-start gap-4">
                   <Link
-                    to="/contact"
+                    to={`/services/${activeService.id}/inquiry`}
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-8 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-[#FDFBF7] font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.02]"
                   >
-                    <span>Book Site Consultation</span>
+                    <span>Book {activeService.shortTitle} / Get Quote</span>
                     <ArrowRight className="w-4 h-4 text-luxury-gold" />
                   </Link>
                 </div>

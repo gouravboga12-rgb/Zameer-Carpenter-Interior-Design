@@ -111,3 +111,22 @@ Please get in touch with me to schedule our site visit.`;
 
   return buildWhatsAppUrl(text);
 }
+
+/**
+ * 7. Dedicated Service Specific Inquiry WhatsApp Message
+ */
+export function getDedicatedServiceInquiryWhatsAppUrl({ name, phone, email, serviceTitle, address, spaceType, notes }) {
+  const text = `Hello Zameer Interiors,
+
+🌟 Direct Service Inquiry for "${serviceTitle}":
+👤 Name: ${name || 'Customer'}
+📱 Phone: ${phone}${email ? `\n✉️ Email: ${email}` : ''}
+📍 Property Address: ${address || 'Hyderabad'}
+🏢 Space / Property: ${spaceType || 'Residential Space'}
+${notes ? `📝 Project Notes / Dimensions: ${notes}\n` : ''}
+Please let me know when we can schedule our free site visit & estimate.`;
+
+  return buildWhatsAppUrl(text);
+}
+
+

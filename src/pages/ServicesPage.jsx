@@ -150,12 +150,12 @@ export default function ServicesPage() {
                   </div>
 
                   {/* Primary Action Button */}
-                  <div className="pt-4 border-t border-luxury-border flex items-center justify-start">
+                  <div className="pt-4 border-t border-luxury-border flex items-center justify-start gap-4">
                     <Link
-                      to="/contact"
+                      to={`/services/${activeService.id}/inquiry`}
                       className="inline-flex items-center justify-center gap-2 py-3.5 px-8 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-[#FDFBF7] font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.02]"
                     >
-                      <span>Book Site Consultation</span>
+                      <span>Book {activeService.shortTitle} / Get Quote</span>
                       <ArrowRight className="w-4 h-4 text-luxury-gold" />
                     </Link>
                   </div>
@@ -259,10 +259,10 @@ export default function ServicesPage() {
                   {/* Mobile Action Button */}
                   <div className="pt-2 border-t border-luxury-border">
                     <Link
-                      to="/contact"
+                      to={`/services/${service.id}/inquiry`}
                       className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-[#FDFBF7] font-bold text-xs uppercase tracking-wider shadow-md active:scale-98"
                     >
-                      <span>Book {service.shortTitle}</span>
+                      <span>Book {service.shortTitle} / Get Quote</span>
                       <ArrowRight className="w-4 h-4 text-luxury-gold" />
                     </Link>
                   </div>
