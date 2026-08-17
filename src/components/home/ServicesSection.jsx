@@ -18,6 +18,18 @@ export default function ServicesSection() {
   const activeService = servicesList.find((s) => s.id === activeTabId) || servicesList[0];
   const ActiveIcon = getServiceIcon(activeService?.iconName);
 
+  const handleSelectTab = (id) => {
+    setActiveTabId(id);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        const el = document.getElementById('home-service-detail');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 50);
+    }
+  };
+
   return (
     <section id="services" className="py-20 sm:py-28 bg-luxury-bg relative overflow-hidden">
       {/* Background Subtle Accent */}
@@ -41,8 +53,8 @@ export default function ServicesSection() {
             return (
               <button
                 key={service.id}
-                onClick={() => setActiveTabId(service.id)}
-                className={`p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 transition-all duration-300 relative border ${
+                onClick={() => handleSelectTab(service.id)}
+                className={`p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 transition-all duration-300 relative border cursor-pointer ${
                   isActive
                     ? 'bg-luxury-walnut text-[#FDFBF7] border-luxury-gold shadow-lg shadow-luxury-gold/10 scale-105 z-10'
                     : 'bg-luxury-card text-luxury-muted hover:text-luxury-walnut hover:border-luxury-gold/40 border-luxury-border shadow-sm'
@@ -68,15 +80,16 @@ export default function ServicesSection() {
         </div>
 
         {/* Selected Service Detailed View with Smooth Transition */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeService.id}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="luxury-card rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/30"
-          >
+        <div id="home-service-detail" className="w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeService.id}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="luxury-card rounded-3xl overflow-hidden shadow-2xl border border-luxury-gold/30"
+            >
             <div className="grid grid-cols-1 lg:grid-cols-12">
               
               {/* Left Column: Image with Luxury Badge (5 Cols) */}
@@ -158,6 +171,7 @@ export default function ServicesSection() {
             </div>
           </motion.div>
         </AnimatePresence>
+        </div>
 
       </div>
     </section>

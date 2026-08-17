@@ -20,6 +20,18 @@ export default function ServicesPage() {
 
   const activeService = servicesList.find((s) => s.id === selectedServiceId) || servicesList[0];
 
+  const handleSelectService = (id) => {
+    setSelectedServiceId(id);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        const el = document.getElementById('service-details');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 50);
+    }
+  };
+
   const toggleScope = (serviceId) => {
     setExpandedScopes((prev) => ({
       ...prev,
@@ -56,8 +68,8 @@ export default function ServicesPage() {
             return (
               <button
                 key={service.id}
-                onClick={() => setSelectedServiceId(service.id)}
-                className={`p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 transition-all duration-300 relative border ${
+                onClick={() => handleSelectService(service.id)}
+                className={`p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 transition-all duration-300 relative border cursor-pointer ${
                   isActive
                     ? 'bg-luxury-walnut text-[#FDFBF7] border-luxury-gold shadow-lg shadow-luxury-gold/10 scale-105 z-10'
                     : 'bg-luxury-card text-luxury-muted hover:text-luxury-walnut hover:border-luxury-gold/40 border-luxury-border shadow-sm'
@@ -81,8 +93,8 @@ export default function ServicesPage() {
           })}
         </div>
 
-        {/* DESKTOP VIEW: Active Service Single Panel */}
-        <div className="hidden sm:block">
+        {/* Responsive Active Service Single Panel (Mobile & Desktop) */}
+        <div id="service-details" className="w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeService.id}
@@ -95,7 +107,7 @@ export default function ServicesPage() {
               <div className="grid grid-cols-1 lg:grid-cols-12">
                 
                 {/* Image Section */}
-                <div className="lg:col-span-5 relative min-h-[420px] lg:min-h-full">
+                <div className="lg:col-span-5 relative min-h-[300px] sm:min-h-[420px] lg:min-h-full">
                   <img
                     src={activeService.image}
                     alt={activeService.title}
@@ -111,23 +123,23 @@ export default function ServicesPage() {
                   </div>
 
                   <div className="absolute bottom-4 left-4 right-4 text-[#FDFBF7]">
-                    <p className="text-xs font-light text-gray-300">Tolichowki / Shaikpet Precision Workshop</p>
+                    <p className="text-xs font-light text-gray-300">Hyderabad Precision Studio & Site Execution</p>
                     <p className="text-sm font-bold font-heading text-luxury-gold">{activeService.title}</p>
                   </div>
                 </div>
 
                 {/* Details & Subservices Section */}
-                <div className="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-between space-y-6">
+                <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold-dark font-cinzel">
-                      Service Vertical 0{activeService.numericId}
+                      Service Vertical {String(activeService.numericId || '').padStart(2, '0')}
                     </span>
 
-                    <h3 className="font-heading text-3xl font-bold text-luxury-walnut mt-1">
+                    <h3 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut mt-1">
                       {activeService.title}
                     </h3>
                     
-                    <p className="text-sm text-luxury-muted leading-relaxed mt-2 mb-6">
+                    <p className="text-xs sm:text-sm text-luxury-muted leading-relaxed mt-2 mb-6">
                       {activeService.description}
                     </p>
 
@@ -136,8 +148,8 @@ export default function ServicesPage() {
                         <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold"></span>
                         Detailed Execution Scope:
                       </h4>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        {activeService.subservices.map((sub, idx) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {(activeService.subservices || []).map((sub, idx) => (
                           <div
                             key={idx}
                             className="flex items-start gap-2 p-2.5 rounded-xl bg-luxury-surface/80 border border-luxury-border text-xs text-luxury-charcoal"
@@ -151,7 +163,7 @@ export default function ServicesPage() {
                   </div>
 
                   {/* Primary Action Button */}
-                  <div className="pt-4 border-t border-luxury-border flex items-center justify-start gap-4">
+                  <div className="pt-4 border-t border-luxury-border flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3">
                     <Link
                       to={`/services/${activeService.id}/inquiry`}
                       className="inline-flex items-center justify-center gap-2 py-3.5 px-8 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-[#FDFBF7] font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.02]"
@@ -165,113 +177,6 @@ export default function ServicesPage() {
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* MOBILE VIEW: Render All 6 Services Vertically with View More Toggle */}
-        <div className="flex flex-col gap-8 sm:hidden">
-          {servicesList.map((service, index) => {
-            const isExpanded = !!expandedScopes[service.id];
-            const visibleScopeItems = isExpanded
-              ? service.subservices
-              : service.subservices.slice(0, 2);
-
-            return (
-              <div
-                key={service.id}
-                id={service.id}
-                className="luxury-card rounded-3xl overflow-hidden shadow-xl border border-luxury-gold/30 flex flex-col"
-              >
-                {/* Mobile Image Box */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-luxury-walnut">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-full object-cover object-center"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-luxury-walnut/90 via-transparent to-black/20" />
-                  
-                  {/* Top Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-luxury-walnut/90 backdrop-blur-md border border-luxury-gold/50 text-luxury-gold text-xs font-bold shadow-md">
-                      <Sparkles className="w-3 h-3" />
-                      <span>{service.highlight}</span>
-                    </span>
-                  </div>
-
-                  {/* Title Overlay */}
-                  <div className="absolute bottom-3 left-3 right-3 text-[#FDFBF7]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-luxury-gold font-cinzel block">
-                      Service 0{index + 1}
-                    </span>
-                    <h3 className="text-base font-bold font-heading text-white">{service.title}</h3>
-                  </div>
-                </div>
-
-                {/* Mobile Card Details */}
-                <div className="p-5 space-y-4">
-                  <p className="text-xs text-luxury-muted leading-relaxed">
-                    {service.description}
-                  </p>
-
-                  {/* Subservices Checklist with View More Toggle */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold"></span>
-                        Execution Scope:
-                      </h4>
-                      
-                      {service.subservices.length > 2 && (
-                        <button
-                          onClick={() => toggleScope(service.id)}
-                          className="text-[11px] font-bold text-luxury-gold-dark hover:text-luxury-walnut flex items-center gap-1 bg-luxury-surface px-2.5 py-1 rounded-lg border border-luxury-border transition-colors"
-                        >
-                          <span>{isExpanded ? 'Show Less' : 'View More'}</span>
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      {visibleScopeItems.map((sub, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-2 p-2.5 rounded-xl bg-luxury-surface/90 border border-luxury-border text-xs text-luxury-charcoal"
-                        >
-                          <CheckCircle2 className="w-4 h-4 text-luxury-gold shrink-0 mt-0.5" />
-                          <span className="font-medium">{sub}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Additional View More Trigger Bar below list */}
-                    {!isExpanded && service.subservices.length > 2 && (
-                      <button
-                        onClick={() => toggleScope(service.id)}
-                        className="w-full mt-2 py-2 rounded-xl bg-luxury-surface/70 border border-luxury-border text-[11px] font-bold text-luxury-walnut flex items-center justify-center gap-1 hover:bg-luxury-surface transition-colors"
-                      >
-                        <span>View More ({service.subservices.length - 2} more items)</span>
-                        <ChevronDown className="w-3.5 h-3.5 text-luxury-gold" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Mobile Action Button */}
-                  <div className="pt-2 border-t border-luxury-border">
-                    <Link
-                      to={`/services/${service.id}/inquiry`}
-                      className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-[#FDFBF7] font-bold text-xs uppercase tracking-wider shadow-md active:scale-98"
-                    >
-                      <span>Book {service.shortTitle} / Get Quote</span>
-                      <ArrowRight className="w-4 h-4 text-luxury-gold" />
-                    </Link>
-                  </div>
-                </div>
-
-              </div>
-            );
-          })}
         </div>
 
       </section>
