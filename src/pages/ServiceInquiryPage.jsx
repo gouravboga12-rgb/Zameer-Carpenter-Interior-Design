@@ -5,12 +5,14 @@ import {
   Home, CookingPot, Hammer, DoorOpen, Tv, Building2, 
   CheckCircle2, ArrowRight, ArrowLeft, MessageSquare, Phone, 
   MapPin, Clock, Sparkles, ShieldCheck, Send, Loader2, 
-  AlertCircle, Check, Wrench, Mail
+  AlertCircle, Check, Wrench, Mail, Upload, Image as ImageIcon,
+  Trash2, FileText
 } from 'lucide-react';
 import { SERVICES_DATA } from '../data/servicesData';
 import { COMPANY_INFO } from '../data/companyInfo';
 import { useAdminData } from '../context/AdminDataContext';
 import { getDedicatedServiceInquiryWhatsAppUrl, getGeneralWhatsAppUrl } from '../utils/whatsapp';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 const SERVICE_ICONS = {
   Home,
@@ -112,6 +114,34 @@ export default function ServiceInquiryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [uploadingFieldId, setUploadingFieldId] = useState(null);
+  const [fieldUploadError, setFieldUploadError] = useState({});
+
+  const handleFileUpload = async (fieldId, file) => {
+    if (!file) return;
+
+    // 5MB Limit
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setFieldUploadError(prev => ({ ...prev, [fieldId]: 'File size exceeds 5MB limit. Please choose a smaller file.' }));
+      return;
+    }
+
+    setUploadingFieldId(fieldId);
+    setFieldUploadError(prev => ({ ...prev, [fieldId]: '' }));
+
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData(prev => ({ ...prev, [fieldId]: url }));
+      if (errors[fieldId]) {
+        setErrors(prev => ({ ...prev, [fieldId]: '' }));
+      }
+    } catch (err) {
+      setFieldUploadError(prev => ({ ...prev, [fieldId]: 'Upload failed. Please try again.' }));
+    } finally {
+      setUploadingFieldId(null);
+    }
+  };
 
   // Reset form when serviceId or currentService changes
   useEffect(() => {
@@ -436,7 +466,7 @@ export default function ServiceInquiryPage() {
                 {/* Dynamic Form Fields Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {formFields.map((field) => {
-                    const isFullWidth = field.type === 'textarea' || field.id === 'address';
+                    const isFullWidth = field.type === 'textarea' || field.type === 'file' || field.type === 'image' || field.id === 'address';
 
                     return (
                       <div key={field.id} className={isFullWidth ? 'col-span-full' : 'col-span-1'}>
@@ -475,6 +505,89 @@ export default function ServiceInquiryPage() {
                               </option>
                             ))}
                           </select>
+                        ) : field.type === 'file' || field.type === 'image' ? (
+                          <div className="space-y-1.5">
+                            {formData[field.id] ? (
+                              <div className="p-3.5 rounded-2xl bg-luxury-surface/80 border border-luxury-gold/40 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {formData[field.id].startsWith('http') || formData[field.id].startsWith('data:') ? (
+                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-walnut shrink-0 border border-luxury-gold/40 shadow-xs">
+                                      <img src={formData[field.id]} alt="Attachment Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-xl bg-luxury-gold/20 flex items-center justify-center text-luxury-gold shrink-0">
+                                      <FileText className="w-5 h-5" />
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <span className="text-xs font-bold text-luxury-walnut flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                      <span>Attachment Attached</span>
+                                    </span>
+                                    <span className="text-[10px] text-luxury-muted block truncate max-w-xs font-mono mt-0.5">
+                                      {formData[field.id].startsWith('http') ? 'Cloudinary File Uploaded' : 'Uploaded file'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <label className="px-3 py-1.5 rounded-xl bg-luxury-gold/20 hover:bg-luxury-gold/30 text-luxury-gold-dark text-xs font-bold cursor-pointer transition-colors">
+                                    <span>Change</span>
+                                    <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])} className="hidden" />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, [field.id]: '' }))}
+                                    className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 transition-colors cursor-pointer"
+                                    title="Remove File"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 rounded-2xl bg-luxury-surface/70 border-2 border-dashed border-luxury-gold/40 hover:border-luxury-gold flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left transition-colors">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-9 h-9 rounded-xl bg-luxury-gold/20 text-luxury-gold flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                                    <Upload className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-bold text-luxury-walnut block">
+                                      {field.placeholder || 'Upload Floor Plan, Photos or Design PDF'}
+                                    </span>
+                                    <span className="text-[10px] text-luxury-muted block">
+                                      Supports JPG, PNG, WEBP, PDF (Max 5MB)
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <label className="px-4 py-2 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold font-bold text-xs uppercase tracking-wider cursor-pointer shadow-xs transition-transform active:scale-95 shrink-0 flex items-center gap-1.5 mx-auto sm:mx-0">
+                                  {uploadingFieldId === field.id ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      <span>Uploading...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Upload className="w-3.5 h-3.5" />
+                                      <span>Browse File</span>
+                                    </>
+                                  )}
+                                  <input
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    disabled={uploadingFieldId === field.id}
+                                    onChange={(e) => handleFileUpload(field.id, e.target.files?.[0])}
+                                    className="hidden"
+                                  />
+                                </label>
+                              </div>
+                            )}
+
+                            {fieldUploadError[field.id] && (
+                              <p className="text-[11px] text-red-500 font-semibold">{fieldUploadError[field.id]}</p>
+                            )}
+                          </div>
                         ) : field.type === 'textarea' ? (
                           <textarea
                             id={field.id}

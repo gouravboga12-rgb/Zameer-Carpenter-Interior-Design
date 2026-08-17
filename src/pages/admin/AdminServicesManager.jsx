@@ -14,7 +14,8 @@ const FIELD_TYPE_LABELS = {
   email: 'Email Address',
   number: 'Number (Digits Only)',
   select: 'Dropdown Select',
-  textarea: 'Multi-line Textarea'
+  textarea: 'Multi-line Textarea',
+  file: 'Image / File Upload (Floor Plan)'
 };
 
 const FIELD_TYPE_ICONS = {
@@ -23,7 +24,8 @@ const FIELD_TYPE_ICONS = {
   email: Mail,
   number: Hash,
   select: ListFilter,
-  textarea: FileText
+  textarea: FileText,
+  file: ImageIcon
 };
 
 export default function AdminServicesManager() {
@@ -700,6 +702,7 @@ export default function AdminServicesManager() {
                           <option value="number">Number / Digits Only</option>
                           <option value="select">Dropdown Select (Custom Options)</option>
                           <option value="textarea">Multi-line Textarea (Notes / Remarks)</option>
+                          <option value="file">Image / Floor Plan Upload (File / Photo)</option>
                         </select>
                       </div>
 

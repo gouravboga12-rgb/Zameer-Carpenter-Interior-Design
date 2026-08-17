@@ -200,6 +200,40 @@ export default function AdminServiceInquiries() {
 
                 </div>
 
+                {/* Custom Dynamic Form Fields (if any) */}
+                {item.custom_fields && Object.keys(item.custom_fields).length > 0 && (
+                  <div className="bg-luxury-surface/90 p-3.5 rounded-2xl border border-luxury-border space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-luxury-gold-dark block">
+                      Additional Tailored Form Details:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                      {Object.entries(item.custom_fields).map(([label, val]) => {
+                        const isFile = typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:image'));
+                        return (
+                          <div key={label} className="p-2 rounded-xl bg-white border border-luxury-border space-y-1">
+                            <span className="text-[10px] font-bold text-luxury-muted block uppercase tracking-wider">{label}</span>
+                            {isFile ? (
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={val}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-bold text-luxury-gold-dark hover:underline"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                  <span>View Uploaded File / Floor Plan</span>
+                                </a>
+                              </div>
+                            ) : (
+                              <span className="font-semibold text-luxury-walnut block truncate" title={String(val)}>{String(val)}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Project Notes / Dimensions */}
                 {item.notes && (
                   <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1">
@@ -207,7 +241,7 @@ export default function AdminServiceInquiries() {
                       <FileText className="w-3.5 h-3.5" />
                       <span>Project Notes & Dimensions:</span>
                     </div>
-                    <p className="text-xs text-luxury-walnut leading-relaxed">
+                    <p className="text-xs text-luxury-walnut leading-relaxed whitespace-pre-line">
                       {item.notes}
                     </p>
                   </div>
