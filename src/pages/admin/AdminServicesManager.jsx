@@ -103,19 +103,23 @@ export default function AdminServicesManager() {
     setEditingFieldIndex(null);
     setEditingService(srv);
 
-    const currentFields = (srv.formFields && srv.formFields.length > 0)
+    const currentFields = (srv.formFields && Array.isArray(srv.formFields) && srv.formFields.length > 0)
       ? srv.formFields
       : getDefaultFormFieldsForService(srv.id, srv.shortTitle || srv.title, srv.propertyTypes);
 
+    const safeSubs = Array.isArray(srv.subservices) ? srv.subservices : (typeof srv.subservices === 'string' ? srv.subservices.split('\n') : []);
+    const safeFeats = Array.isArray(srv.features) ? srv.features : (typeof srv.features === 'string' ? srv.features.split('\n') : []);
+
     setFormData({
+      id: srv.id,
       title: srv.title || '',
       shortTitle: srv.shortTitle || srv.title || '',
       iconName: srv.iconName || 'Home',
       highlight: srv.highlight || 'Turnkey Solution',
       description: srv.description || '',
       image: srv.image || '',
-      subservicesText: (srv.subservices || []).join('\n'),
-      featuresText: (srv.features || []).join('\n'),
+      subservicesText: safeSubs.join('\n'),
+      featuresText: safeFeats.join('\n'),
       formHeading: srv.formHeading || `Get Free Quote for ${srv.shortTitle || srv.title}`,
       formSubtitle: srv.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${srv.title}.`,
       submitButtonText: srv.submitButtonText || `Request Free Quote for ${srv.shortTitle || srv.title}`,

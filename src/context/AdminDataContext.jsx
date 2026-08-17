@@ -190,6 +190,22 @@ export function decodeServiceConfigFromDescription(rawDescription) {
   return { description: cleanDescription, config: null };
 }
 
+export function safeArray(val, fallback = []) {
+  if (!val) return fallback;
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      if (val.startsWith('{') && val.endsWith('}')) {
+        return val.slice(1, -1).split(',').map(s => s.replace(/^"|"$/g, '').trim()).filter(Boolean);
+      }
+    }
+  }
+  return fallback;
+}
+
 function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedServiceIds()) {
   const deletedSet = new Set(deletedIds);
   const map = new Map();
@@ -207,8 +223,10 @@ function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedSe
       ];
       map.set(item.id, {
         ...item,
-        propertyTypes: pTypes,
-        formFields: item.formFields || getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes),
+        subservices: safeArray(item.subservices, []),
+        features: safeArray(item.features, []),
+        propertyTypes: safeArray(pTypes, []),
+        formFields: safeArray(item.formFields, getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes)),
         formHeading: item.formHeading || `Get Free Quote for ${item.shortTitle || item.title}`,
         formSubtitle: item.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${item.title}.`,
         submitButtonText: item.submitButtonText || `Request Free Quote for ${item.shortTitle || item.title}`,
@@ -220,25 +238,30 @@ function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedSe
   (customOrDbServices || []).forEach(item => {
     if (!deletedSet.has(item.id)) {
       const existing = map.get(item.id) || {};
-      const pTypes = (item.propertyTypes && item.propertyTypes.length > 0)
-        ? item.propertyTypes
-        : (existing.propertyTypes || [
-            '1 BHK Apartment',
-            '2 BHK Apartment',
-            '3 BHK Apartment',
-            'Villa / Duplex',
-            'Other'
-          ]);
+      const itemSubservices = safeArray(item.subservices, existing.subservices || []);
+      const itemFeatures = safeArray(item.features, existing.features || []);
+      const itemPropertyTypes = safeArray(item.propertyTypes, existing.propertyTypes || []);
+      const itemFormFields = safeArray(item.formFields, null);
+
+      const pTypes = itemPropertyTypes.length > 0 ? itemPropertyTypes : (existing.propertyTypes || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        'Villa / Duplex',
+        'Other'
+      ]);
+
+      const formFields = (itemFormFields && itemFormFields.length > 0)
+        ? itemFormFields
+        : (existing.formFields || getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes));
 
       map.set(item.id, {
         ...existing,
         ...item,
-        subservices: item.subservices || existing.subservices || [],
-        features: item.features || existing.features || [],
+        subservices: itemSubservices,
+        features: itemFeatures,
         propertyTypes: pTypes,
-        formFields: (item.formFields && item.formFields.length > 0)
-          ? item.formFields
-          : (existing.formFields || getDefaultFormFieldsForService(item.id, item.shortTitle || item.title, pTypes)),
+        formFields: formFields,
         formHeading: item.formHeading || existing.formHeading || `Get Free Quote for ${item.shortTitle || item.title}`,
         formSubtitle: item.formSubtitle || existing.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${item.title || 'this project'}.`,
         submitButtonText: item.submitButtonText || existing.submitButtonText || `Request Free Quote for ${item.shortTitle || item.title}`,
@@ -380,20 +403,20 @@ export function AdminDataProvider({ children }) {
           return {
             id: s.id,
             numericId: s.numeric_id,
-            title: s.title,
-            shortTitle: s.short_title,
-            iconName: s.icon_name,
-            highlight: s.highlight,
-            description: cleanDesc || s.description,
-            image: s.image,
-            subservices: s.subservices || [],
-            features: s.features || [],
-            propertyTypes: config?.propertyTypes || s.property_types || s.propertyTypes || [],
-            formFields: config?.formFields || s.form_fields || s.formFields || null,
-            formHeading: config?.formHeading || s.form_heading || s.formHeading,
-            formSubtitle: config?.formSubtitle || s.form_subtitle || s.formSubtitle,
-            submitButtonText: config?.submitButtonText || s.submit_button_text || s.submitButtonText,
-            formNotesPlaceholder: config?.formNotesPlaceholder || s.form_notes_placeholder || s.formNotesPlaceholder
+            title: s.title || '',
+            shortTitle: s.short_title || s.title || '',
+            iconName: s.icon_name || 'Home',
+            highlight: s.highlight || 'Turnkey Solution',
+            description: cleanDesc || s.description || '',
+            image: s.image || '',
+            subservices: safeArray(s.subservices, []),
+            features: safeArray(s.features, []),
+            propertyTypes: safeArray(config?.propertyTypes || s.property_types || s.propertyTypes, []),
+            formFields: safeArray(config?.formFields || s.form_fields || s.formFields, null),
+            formHeading: config?.formHeading || s.form_heading || s.formHeading || '',
+            formSubtitle: config?.formSubtitle || s.form_subtitle || s.formSubtitle || '',
+            submitButtonText: config?.submitButtonText || s.submit_button_text || s.submitButtonText || '',
+            formNotesPlaceholder: config?.formNotesPlaceholder || s.form_notes_placeholder || s.formNotesPlaceholder || ''
           };
         });
         const mergedServices = mergeServicesWithDefaults(formatted);

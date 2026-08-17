@@ -5,6 +5,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import FloatingActions from './components/layout/FloatingActions';
 import ScrollToTop from './components/layout/ScrollToTop';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { AdminDataProvider } from './context/AdminDataContext';
 
 // Pages
@@ -83,10 +84,12 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <AdminDataProvider>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </AdminDataProvider>
+    <ErrorBoundary>
+      <AdminDataProvider>
+        <BrowserRouter>
+          <AppLayout />
+        </BrowserRouter>
+      </AdminDataProvider>
+    </ErrorBoundary>
   );
 }
