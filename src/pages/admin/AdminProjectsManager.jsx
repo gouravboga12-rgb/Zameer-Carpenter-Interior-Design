@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Plus, Edit2, Trash2, Film, Image as ImageIcon, Sparkles, Upload, Play, X, Save, MapPin, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 import { uploadToCloudinary } from '../../utils/cloudinary';
@@ -11,6 +11,7 @@ export default function AdminProjectsManager() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [selectedFilterCategory, setSelectedFilterCategory] = useState('All');
+  const formRef = useRef(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -44,6 +45,10 @@ export default function AdminProjectsManager() {
     });
     setEditingProject(null);
     setIsCreating(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 60);
   };
 
   const handleOpenEdit = (p) => {
@@ -63,6 +68,10 @@ export default function AdminProjectsManager() {
       duration: p.duration || '0:45'
     });
     setIsCreating(false);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 60);
   };
 
   const handleFileUpload = async (e, fieldName) => {
@@ -203,7 +212,11 @@ export default function AdminProjectsManager() {
 
       {/* Create / Edit Project Modal Form */}
       {(isCreating || editingProject) && (
-        <div className="bg-luxury-card p-6 rounded-3xl border-2 border-luxury-gold/50 shadow-xl space-y-4">
+        <div
+          ref={formRef}
+          id="project-form-section"
+          className="bg-luxury-card p-6 rounded-3xl border-2 border-luxury-gold shadow-2xl space-y-4 relative scroll-mt-24 ring-4 ring-luxury-gold/30 transition-all duration-300"
+        >
           <div className="flex items-center justify-between border-b border-luxury-border pb-3">
             <h3 className="font-heading text-lg font-bold text-luxury-walnut flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-luxury-gold" />
