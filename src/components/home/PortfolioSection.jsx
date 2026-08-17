@@ -92,7 +92,7 @@ export default function PortfolioSection({ isHomePage = false }) {
           <AnimatePresence>
             {filteredItems.map((item, idx) => {
               const isVideo = item.type === 'video' || !!item.videoUrl;
-              const displayImage = isVideo ? item.poster : item.image;
+              const displayImage = item.poster || item.image || '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg';
 
               return (
                 <motion.div
@@ -107,12 +107,26 @@ export default function PortfolioSection({ isHomePage = false }) {
                 >
                   {/* Media Thumbnail Box */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-luxury-walnut">
-                    <img
-                      src={displayImage}
-                      alt={item.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-700 ease-out"
-                      loading="lazy"
-                    />
+                    {isVideo && item.videoUrl && !item.poster && !item.image ? (
+                      <video
+                        src={item.videoUrl}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-700 ease-out pointer-events-none"
+                      />
+                    ) : (
+                      <img
+                        src={displayImage}
+                        alt={item.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-700 ease-out"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg';
+                        }}
+                      />
+                    )}
                     
                     {/* Vignette Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-luxury-walnut/90 via-luxury-walnut/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
@@ -122,7 +136,7 @@ export default function PortfolioSection({ isHomePage = false }) {
                       {isVideo ? (
                         <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-600/90 text-white backdrop-blur-md shadow-md flex items-center gap-1">
                           <Play className="w-3 h-3 fill-current" />
-                          <span>Video Tour ({item.duration})</span>
+                          <span>Video Tour ({item.duration || '0:45'})</span>
                         </span>
                       ) : (
                         <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-luxury-walnut/85 backdrop-blur-md text-luxury-gold border border-luxury-gold/40 shadow-sm">

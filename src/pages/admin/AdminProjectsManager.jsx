@@ -100,34 +100,37 @@ export default function AdminProjectsManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.type === 'video' && !formData.videoUrl) {
+      setUploadError('Please choose or upload an MP4 video file.');
+      return;
+    }
+    if (formData.type === 'image' && !formData.image) {
+      setUploadError('Please choose or upload a project photo.');
+      return;
+    }
+
+    const fallbackPoster = '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg';
+    const effectiveImage = formData.type === 'image' ? formData.image : (formData.poster || formData.image || fallbackPoster);
+    const effectivePoster = formData.type === 'video' ? (formData.poster || formData.image || fallbackPoster) : (formData.image || fallbackPoster);
+
+    const projectPayload = {
+      title: formData.title,
+      category: formData.category,
+      location: formData.location,
+      description: formData.description,
+      materials: formData.materials,
+      scope: formData.scope,
+      image: effectiveImage,
+      type: formData.type,
+      videoUrl: formData.videoUrl,
+      poster: effectivePoster,
+      duration: formData.duration || '0:45'
+    };
+
     if (editingProject) {
-      await updateProject(editingProject.id, {
-        title: formData.title,
-        category: formData.category,
-        location: formData.location,
-        description: formData.description,
-        materials: formData.materials,
-        scope: formData.scope,
-        image: formData.image || formData.poster,
-        type: formData.type,
-        videoUrl: formData.videoUrl,
-        poster: formData.poster || formData.image,
-        duration: formData.duration
-      });
+      await updateProject(editingProject.id, projectPayload);
     } else {
-      await addProject({
-        title: formData.title,
-        category: formData.category,
-        location: formData.location,
-        description: formData.description,
-        materials: formData.materials,
-        scope: formData.scope,
-        image: formData.image || formData.poster,
-        type: formData.type,
-        videoUrl: formData.videoUrl,
-        poster: formData.poster || formData.image,
-        duration: formData.duration
-      });
+      await addProject(projectPayload);
     }
 
     setIsCreating(false);
@@ -362,45 +365,105 @@ export default function AdminProjectsManager() {
                 )}
               </div>
             ) : (
-              /* VIDEO TOUR UPLOAD BOX (Max 10MB) - NO IMAGE INPUT HERE */
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
-                    <Film className="w-4 h-4" />
-                    <span>Upload Video Tour MP4</span>
-                  </label>
-                  <span className="text-[11px] font-bold text-red-700 bg-red-500/15 px-2.5 py-0.5 rounded-full border border-red-500/30">
-                    Max File Size: Under 10MB
-                  </span>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-red-500/5 border-2 border-dashed border-red-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-600 flex items-center justify-center shrink-0">
-                      <Film className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-luxury-walnut">
-                        {formData.videoUrl ? 'Video Tour Uploaded / Selected' : 'Choose an MP4 video walkthrough from your device'}
-                      </p>
-                      <span className="text-[11px] text-luxury-muted block">
-                        Supports MP4, MOV, WEBM (Max 10MB)
-                      </span>
-                    </div>
+              /* VIDEO TOUR UPLOAD BOX (Max 10MB) */
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
+                      <Film className="w-4 h-4" />
+                      <span>Upload Video Tour MP4</span>
+                    </label>
+                    <span className="text-[11px] font-bold text-red-700 bg-red-500/15 px-2.5 py-0.5 rounded-full border border-red-500/30">
+                      Max File Size: Under 10MB
+                    </span>
                   </div>
 
-                  <label className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
-                    <span>{uploading ? 'Uploading Video...' : 'Browse MP4 Video'}</span>
-                    <input type="file" accept="video/mp4,video/*" onChange={(e) => handleFileUpload(e, 'videoUrl')} className="hidden" />
-                  </label>
+                  {formData.videoUrl ? (
+                    <div className="p-4 rounded-2xl bg-red-500/5 border-2 border-red-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-black shrink-0 border border-red-500/40 shadow-sm relative flex items-center justify-center">
+                          <video src={formData.videoUrl} className="w-full h-full object-cover pointer-events-none" muted />
+                          <Play className="w-5 h-5 text-luxury-gold absolute fill-current" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-luxury-walnut flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Video Walkthrough Ready</span>
+                          </p>
+                          <span className="text-[11px] text-luxury-muted block truncate max-w-xs sm:max-w-md mt-0.5 font-mono">
+                            {formData.videoUrl.startsWith('data:') ? 'Local video file ready' : formData.videoUrl}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <label className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-transform active:scale-95">
+                          <span>{uploading ? 'Uploading...' : 'Change Video'}</span>
+                          <input type="file" accept="video/mp4,video/*" onChange={(e) => handleFileUpload(e, 'videoUrl')} className="hidden" />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, videoUrl: '' }))}
+                          className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 transition-colors cursor-pointer"
+                          title="Remove Video"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 rounded-2xl bg-red-500/5 border-2 border-dashed border-red-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-600 flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                          <Film className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-luxury-walnut">
+                            Choose an MP4 video walkthrough from your device
+                          </p>
+                          <span className="text-[11px] text-luxury-muted block">
+                            Supports MP4, MOV, WEBM (Max 10MB)
+                          </span>
+                        </div>
+                      </div>
+
+                      <label className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider cursor-pointer shadow-md shrink-0 transition-transform active:scale-95">
+                        <span>{uploading ? 'Uploading Video...' : 'Browse MP4 Video'}</span>
+                        <input type="file" accept="video/mp4,video/*" onChange={(e) => handleFileUpload(e, 'videoUrl')} className="hidden" />
+                      </label>
+                    </div>
+                  )}
                 </div>
 
-                {formData.videoUrl && (
-                  <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/30 truncate">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate">Video Ready: {formData.videoUrl}</span>
-                  </div>
-                )}
+                {/* Optional Custom Video Cover Poster */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-luxury-gold" />
+                    <span>Optional Custom Video Poster Cover (Photo)</span>
+                  </label>
+                  
+                  {formData.poster && formData.poster !== formData.image ? (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-luxury-surface border border-luxury-border">
+                      <div className="flex items-center gap-3">
+                        <img src={formData.poster} alt="Poster" className="w-10 h-10 rounded-lg object-cover border border-luxury-gold/30" />
+                        <span className="text-xs font-semibold text-luxury-walnut">Custom Cover Ready</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, poster: '' }))}
+                        className="text-xs text-red-600 hover:underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-luxury-surface hover:bg-luxury-border border border-luxury-border text-luxury-charcoal font-bold text-xs cursor-pointer">
+                      <Upload className="w-3.5 h-3.5 text-luxury-gold" />
+                      <span>Upload Custom Cover Poster Image</span>
+                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
             )}
 
