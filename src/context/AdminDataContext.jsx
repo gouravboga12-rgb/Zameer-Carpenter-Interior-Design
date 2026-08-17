@@ -160,9 +160,37 @@ export function AdminDataProvider({ children }) {
     };
   });
 
-  // Load / Sync initial data from Supabase & keep sync alive
+  // Load / Sync initial data from Supabase & keep sync alive in realtime across all devices
   useEffect(() => {
     fetchSupabaseData();
+
+    // 1. Setup realtime database subscription across mobile & laptop
+    const channel = supabase
+      .channel('zameer_realtime_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'service_inquiries' }, () => {
+        fetchSupabaseData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_inquiries' }, () => {
+        fetchSupabaseData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        fetchSupabaseData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, () => {
+        fetchSupabaseData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'company_settings' }, () => {
+        fetchSupabaseData();
+      })
+      .subscribe();
+
+    // 2. Fallback periodic sync every 15s to guarantee multi-device parity
+    const interval = setInterval(fetchSupabaseData, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   async function fetchSupabaseData() {
@@ -209,22 +237,18 @@ export function AdminDataProvider({ children }) {
         localStorage.setItem('zameer_projects_cache', JSON.stringify(mergedProjects));
       }
 
-      // Sync Service Inquiries smoothly without overwriting local submissions
+      // Sync Service Inquiries directly from database as single source of truth across all devices
       const { data: dbSInquiries, error: sinqErr } = await supabase.from('service_inquiries').select('*').order('created_at', { ascending: false });
       if (!sinqErr && dbSInquiries) {
-        const localS = JSON.parse(localStorage.getItem('zameer_service_inquiries') || '[]');
-        const mergedS = mergeInquiries(localS, dbSInquiries);
-        setServiceInquiries(mergedS);
-        localStorage.setItem('zameer_service_inquiries', JSON.stringify(mergedS));
+        setServiceInquiries(dbSInquiries);
+        localStorage.setItem('zameer_service_inquiries', JSON.stringify(dbSInquiries));
       }
 
-      // Sync Contact Inquiries smoothly without overwriting local submissions
+      // Sync Contact Inquiries directly from database as single source of truth across all devices
       const { data: dbCInquiries, error: cinqErr } = await supabase.from('contact_inquiries').select('*').order('created_at', { ascending: false });
       if (!cinqErr && dbCInquiries) {
-        const localC = JSON.parse(localStorage.getItem('zameer_contact_inquiries') || '[]');
-        const mergedC = mergeInquiries(localC, dbCInquiries);
-        setContactInquiries(mergedC);
-        localStorage.setItem('zameer_contact_inquiries', JSON.stringify(mergedC));
+        setContactInquiries(dbCInquiries);
+        localStorage.setItem('zameer_contact_inquiries', JSON.stringify(dbCInquiries));
       }
 
       // Sync Settings
