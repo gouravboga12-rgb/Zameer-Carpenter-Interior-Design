@@ -39,7 +39,7 @@ export default function AdminServiceInquiries() {
               <span>Service Vertical Lead Engine</span>
             </div>
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-luxury-walnut mt-0.5">
-              Service Form Inquiries ({serviceInquiries.length} Submissions)
+              Service Form Inquiries ({serviceInquiries.filter(i => (i.status || 'New') !== 'Completed').length} Pending · {serviceInquiries.length} Total)
             </h2>
             <p className="text-xs text-luxury-muted mt-0.5">
               Inquiries recorded specifically from individual service booking forms.
@@ -57,7 +57,7 @@ export default function AdminServiceInquiries() {
                     : 'bg-luxury-surface text-luxury-muted hover:text-luxury-charcoal border border-luxury-border'
                 }`}
               >
-                {st} {st !== 'All' && `(${serviceInquiries.filter(i => (i.status || 'New') === st).length})`}
+                {st} ({st === 'All' ? serviceInquiries.length : serviceInquiries.filter(i => (i.status || 'New') === st).length})
               </button>
             ))}
           </div>

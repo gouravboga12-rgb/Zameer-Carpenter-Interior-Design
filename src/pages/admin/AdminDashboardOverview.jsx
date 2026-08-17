@@ -8,9 +8,9 @@ import { useAdminData } from '../../context/AdminDataContext';
 export default function AdminDashboardOverview({ onNavigate }) {
   const { services, projects, serviceInquiries, contactInquiries, settings } = useAdminData();
 
-  const newServiceInquiries = serviceInquiries.filter(i => !i.status || i.status === 'New').length;
-  const newContactInquiries = contactInquiries.filter(i => !i.status || i.status === 'New').length;
-  const totalInquiries = serviceInquiries.length + contactInquiries.length;
+  const pendingServiceInquiries = serviceInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
+  const pendingContactInquiries = contactInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
+  const totalPendingInquiries = pendingServiceInquiries + pendingContactInquiries;
 
   const recentServiceInquiries = serviceInquiries.slice(0, 4);
   const recentContactInquiries = contactInquiries.slice(0, 4);
@@ -41,7 +41,7 @@ export default function AdminDashboardOverview({ onNavigate }) {
             className="px-4 py-2.5 rounded-xl bg-luxury-gold hover:bg-yellow-400 text-luxury-walnut font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>View Inquiries ({serviceInquiries.length})</span>
+            <span>View Inquiries ({pendingServiceInquiries} Pending)</span>
           </button>
           
           <button
@@ -93,10 +93,13 @@ export default function AdminDashboardOverview({ onNavigate }) {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-heading text-3xl font-bold text-luxury-walnut">{serviceInquiries.length}</span>
-            {newServiceInquiries > 0 && (
+            <span className="font-heading text-3xl font-bold text-luxury-walnut">{pendingServiceInquiries}</span>
+            <span className="text-xs text-luxury-muted font-semibold">
+              Pending ({serviceInquiries.length} Total)
+            </span>
+            {pendingServiceInquiries > 0 && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-300 animate-pulse">
-                {newServiceInquiries} New
+                {pendingServiceInquiries} Active
               </span>
             )}
           </div>
@@ -117,10 +120,13 @@ export default function AdminDashboardOverview({ onNavigate }) {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-heading text-3xl font-bold text-luxury-walnut">{contactInquiries.length}</span>
-            {newContactInquiries > 0 && (
+            <span className="font-heading text-3xl font-bold text-luxury-walnut">{pendingContactInquiries}</span>
+            <span className="text-xs text-luxury-muted font-semibold">
+              Pending ({contactInquiries.length} Total)
+            </span>
+            {pendingContactInquiries > 0 && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 animate-pulse">
-                {newContactInquiries} New
+                {pendingContactInquiries} Active
               </span>
             )}
           </div>

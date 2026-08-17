@@ -38,7 +38,7 @@ export default function AdminContactInquiries() {
               <span>Contact Page Consultations</span>
             </div>
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-luxury-walnut mt-0.5">
-              Contact Page Inquiries ({contactInquiries.length} Consultations)
+              Contact Page Inquiries ({contactInquiries.filter(i => (i.status || 'New') !== 'Completed').length} Pending · {contactInquiries.length} Total)
             </h2>
             <p className="text-xs text-luxury-muted mt-0.5">
               General site visit & measurement consultation inquiries submitted directly from the main Contact Page.
@@ -56,7 +56,7 @@ export default function AdminContactInquiries() {
                     : 'bg-luxury-surface text-luxury-muted hover:text-luxury-charcoal border border-luxury-border'
                 }`}
               >
-                {st} {st !== 'All' && `(${contactInquiries.filter(i => (i.status || 'New') === st).length})`}
+                {st} ({st === 'All' ? contactInquiries.length : contactInquiries.filter(i => (i.status || 'New') === st).length})
               </button>
             ))}
           </div>

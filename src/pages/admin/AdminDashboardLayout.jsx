@@ -23,13 +23,14 @@ export default function AdminDashboardLayout() {
     navigate('/');
   };
 
-  const totalInquiries = serviceInquiries.length + contactInquiries.length;
+  const pendingServiceInquiries = serviceInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
+  const pendingContactInquiries = contactInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
     { id: 'services', label: 'Service Verticals (CRUD)', icon: Wrench, count: services.length },
-    { id: 'service-inquiries', label: 'Service Form Inquiries', icon: MessageSquare, count: serviceInquiries.length },
-    { id: 'contact-inquiries', label: 'Contact Page Inquiries', icon: PhoneCall, count: contactInquiries.length },
+    { id: 'service-inquiries', label: 'Service Form Inquiries', icon: MessageSquare, count: pendingServiceInquiries },
+    { id: 'contact-inquiries', label: 'Contact Page Inquiries', icon: PhoneCall, count: pendingContactInquiries },
     { id: 'projects', label: 'Projects & Video Upload', icon: FolderGit2, count: projects.length },
     { id: 'settings', label: 'Phone & WhatsApp Settings', icon: Settings }
   ];
@@ -79,6 +80,7 @@ export default function AdminDashboardLayout() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const isLeadTab = item.id === 'service-inquiries' || item.id === 'contact-inquiries';
 
               return (
                 <button
@@ -98,8 +100,12 @@ export default function AdminDashboardLayout() {
                     <span className="truncate">{item.label}</span>
                   </div>
                   {typeof item.count === 'number' && (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                      isActive ? 'bg-luxury-walnut text-luxury-gold' : 'bg-white/10 text-gray-300'
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-colors ${
+                      isActive 
+                        ? 'bg-luxury-walnut text-luxury-gold' 
+                        : isLeadTab && item.count > 0
+                          ? 'bg-luxury-gold text-luxury-walnut font-black shadow-xs'
+                          : 'bg-white/10 text-gray-300'
                     }`}>
                       {item.count}
                     </span>
