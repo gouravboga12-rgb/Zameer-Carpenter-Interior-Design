@@ -1,12 +1,12 @@
 import React from 'react';
 import { 
-  Wrench, MessageSquare, PhoneCall, FolderGit2, Settings, 
-  TrendingUp, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Phone, ShieldCheck
+  Wrench, MessageSquare, PhoneCall, FolderGit2, 
+  TrendingUp, Clock, CheckCircle2, AlertCircle, ArrowUpRight, ShieldCheck
 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 
 export default function AdminDashboardOverview({ onNavigate }) {
-  const { services, projects, serviceInquiries, contactInquiries, settings } = useAdminData();
+  const { services, projects, serviceInquiries, contactInquiries } = useAdminData();
 
   const pendingServiceInquiries = serviceInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
   const pendingContactInquiries = contactInquiries.filter(i => (i.status || 'New') !== 'Completed').length;
@@ -153,30 +153,6 @@ export default function AdminDashboardOverview({ onNavigate }) {
           <span className="text-[11px] text-luxury-muted mt-1 block">Photos, walkthroughs & 3D renders</span>
         </div>
 
-      </div>
-
-      {/* Live Contact Settings Strip */}
-      <div className="bg-luxury-card p-5 rounded-2xl border border-luxury-border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-            <Phone className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal">
-              Live Phone & WhatsApp Settings
-            </h4>
-            <p className="text-xs font-bold text-luxury-walnut mt-0.5">
-              Phone: {settings.phone} | WhatsApp: {settings.whatsapp}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onNavigate('settings')}
-          className="px-4 py-2 rounded-xl bg-luxury-surface border border-luxury-border hover:bg-luxury-border text-luxury-walnut font-bold text-xs uppercase transition-colors shrink-0 cursor-pointer"
-        >
-          Edit Phone/WhatsApp Settings ›
-        </button>
       </div>
 
       {/* Recent Inquiries Feeds (2 Columns) */}

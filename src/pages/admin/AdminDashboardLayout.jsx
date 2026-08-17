@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Wrench, MessageSquare, PhoneCall, 
-  FolderGit2, Settings, LogOut, ExternalLink, ShieldCheck, Sparkles, Menu, X
+  FolderGit2, LogOut, ExternalLink, ShieldCheck, Sparkles, Menu, X
 } from 'lucide-react';
 import { useAdminData } from '../../context/AdminDataContext';
 import AdminDashboardOverview from './AdminDashboardOverview';
@@ -10,7 +10,6 @@ import AdminServicesManager from './AdminServicesManager';
 import AdminServiceInquiries from './AdminServiceInquiries';
 import AdminContactInquiries from './AdminContactInquiries';
 import AdminProjectsManager from './AdminProjectsManager';
-import AdminSettingsManager from './AdminSettingsManager';
 
 export default function AdminDashboardLayout() {
   const { logoutAdmin, services, projects, serviceInquiries, contactInquiries } = useAdminData();
@@ -31,8 +30,7 @@ export default function AdminDashboardLayout() {
     { id: 'services', label: 'Service Verticals (CRUD)', icon: Wrench, count: services.length },
     { id: 'service-inquiries', label: 'Service Form Inquiries', icon: MessageSquare, count: pendingServiceInquiries },
     { id: 'contact-inquiries', label: 'Contact Page Inquiries', icon: PhoneCall, count: pendingContactInquiries },
-    { id: 'projects', label: 'Projects & Video Upload', icon: FolderGit2, count: projects.length },
-    { id: 'settings', label: 'Phone & WhatsApp Settings', icon: Settings }
+    { id: 'projects', label: 'Projects & Video Upload', icon: FolderGit2, count: projects.length }
   ];
 
   return (
@@ -165,7 +163,6 @@ export default function AdminDashboardLayout() {
         {activeTab === 'service-inquiries' && <AdminServiceInquiries />}
         {activeTab === 'contact-inquiries' && <AdminContactInquiries />}
         {activeTab === 'projects' && <AdminProjectsManager />}
-        {activeTab === 'settings' && <AdminSettingsManager />}
 
       </main>
 
