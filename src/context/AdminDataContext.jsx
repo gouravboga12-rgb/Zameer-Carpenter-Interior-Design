@@ -150,13 +150,18 @@ export function AdminDataProvider({ children }) {
   // 5. Company Contact Settings State
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('zameer_settings_cache');
-    return saved ? JSON.parse(saved) : {
-      phone: COMPANY_INFO.phone,
-      phoneRaw: COMPANY_INFO.phoneRaw,
-      whatsapp: COMPANY_INFO.whatsapp,
-      whatsappRaw: COMPANY_INFO.whatsappRaw,
-      email: COMPANY_INFO.email,
-      address: COMPANY_INFO.address.full
+    const parsed = saved ? JSON.parse(saved) : null;
+    return {
+      phone: parsed?.phone || COMPANY_INFO.phone,
+      phoneRaw: parsed?.phoneRaw || COMPANY_INFO.phoneRaw,
+      whatsapp: parsed?.whatsapp || COMPANY_INFO.whatsapp,
+      whatsappRaw: parsed?.whatsappRaw || COMPANY_INFO.whatsappRaw,
+      floatingPhone: parsed?.floatingPhone || parsed?.phoneRaw || COMPANY_INFO.phoneRaw,
+      floatingWhatsapp: parsed?.floatingWhatsapp || parsed?.whatsappRaw || COMPANY_INFO.whatsappRaw,
+      email: parsed?.email || COMPANY_INFO.email,
+      address: parsed?.address || COMPANY_INFO.address.full,
+      workingDays: parsed?.workingDays || 'Monday – Sunday',
+      workingHours: parsed?.workingHours || '9:00 AM – 9:00 PM'
     };
   });
 
@@ -255,12 +260,16 @@ export function AdminDataProvider({ children }) {
       const { data: dbSettings } = await supabase.from('company_settings').select('*').eq('id', 1).single();
       if (dbSettings) {
         const setObj = {
-          phone: dbSettings.phone,
-          phoneRaw: dbSettings.phone_raw,
-          whatsapp: dbSettings.whatsapp,
-          whatsappRaw: dbSettings.whatsapp_raw,
-          email: dbSettings.email,
-          address: dbSettings.address
+          phone: dbSettings.phone || COMPANY_INFO.phone,
+          phoneRaw: dbSettings.phone_raw || COMPANY_INFO.phoneRaw,
+          whatsapp: dbSettings.whatsapp || COMPANY_INFO.whatsapp,
+          whatsappRaw: dbSettings.whatsapp_raw || COMPANY_INFO.whatsappRaw,
+          floatingPhone: dbSettings.floating_phone || dbSettings.phone_raw || COMPANY_INFO.phoneRaw,
+          floatingWhatsapp: dbSettings.floating_whatsapp || dbSettings.whatsapp_raw || COMPANY_INFO.whatsappRaw,
+          email: dbSettings.email || COMPANY_INFO.email,
+          address: dbSettings.address || COMPANY_INFO.address.full,
+          workingDays: dbSettings.working_days || 'Monday – Sunday',
+          workingHours: dbSettings.working_hours || '9:00 AM – 9:00 PM'
         };
         setSettings(setObj);
         localStorage.setItem('zameer_settings_cache', JSON.stringify(setObj));
@@ -629,11 +638,27 @@ export function AdminDataProvider({ children }) {
         phone_raw: merged.phoneRaw,
         whatsapp: merged.whatsapp,
         whatsapp_raw: merged.whatsappRaw,
+        floating_phone: merged.floatingPhone,
+        floating_whatsapp: merged.floatingWhatsapp,
         email: merged.email,
-        address: merged.address
+        address: merged.address,
+        working_days: merged.workingDays,
+        working_hours: merged.workingHours
       }]);
     } catch (e) {
-      console.warn('Settings updated locally:', e);
+      try {
+        await supabase.from('company_settings').upsert([{
+          id: 1,
+          phone: merged.phone,
+          phone_raw: merged.phoneRaw,
+          whatsapp: merged.whatsapp,
+          whatsapp_raw: merged.whatsappRaw,
+          email: merged.email,
+          address: merged.address
+        }]);
+      } catch (err2) {
+        console.warn('Settings saved to local cache:', err2);
+      }
     }
   };
 

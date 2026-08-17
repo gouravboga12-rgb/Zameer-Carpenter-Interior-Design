@@ -3,11 +3,18 @@ import { Link } from 'react-router-dom';
 import { Phone, MessageSquare, Mail, MapPin, Compass, Sparkles, ArrowRight } from 'lucide-react';
 import { COMPANY_INFO } from '../../data/companyInfo';
 import { SERVICES_DATA } from '../../data/servicesData';
+import { useAdminData } from '../../context/AdminDataContext';
 import { getGeneralWhatsAppUrl } from '../../utils/whatsapp';
 import { HEADER_NAV_LINKS } from './Header';
 
 export default function Footer() {
+  const { settings } = useAdminData();
   const currentYear = new Date().getFullYear();
+
+  const phone = settings?.phone || COMPANY_INFO.phone;
+  const phoneRaw = settings?.phoneRaw || COMPANY_INFO.phoneRaw;
+  const whatsapp = settings?.whatsapp || COMPANY_INFO.whatsapp;
+  const address = settings?.address || COMPANY_INFO.address.full;
 
   return (
     <footer className="bg-luxury-walnut text-gray-300 pt-16 pb-24 sm:pb-16 border-t border-luxury-gold/30 relative overflow-hidden">
@@ -93,26 +100,26 @@ export default function Footer() {
             
             <div className="space-y-2.5 text-xs">
               <a
-                href={`tel:${COMPANY_INFO.phoneRaw}`}
-                className="flex items-center gap-2.5 p-2 rounded-lg bg-white/5 hover:bg-luxury-gold/10 border border-white/10 text-gray-200"
+                href={`tel:${phoneRaw}`}
+                className="flex items-center gap-2.5 p-2 rounded-lg bg-white/5 hover:bg-luxury-gold/10 border border-white/10 text-gray-200 transition-colors"
               >
                 <Phone className="w-3.5 h-3.5 text-luxury-gold shrink-0" />
-                <span className="font-semibold text-luxury-gold">{COMPANY_INFO.phone}</span>
+                <span className="font-semibold text-luxury-gold">{phone}</span>
               </a>
 
               <a
                 href={getGeneralWhatsAppUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 p-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 text-emerald-400"
+                className="flex items-center gap-2.5 p-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 text-emerald-400 transition-colors"
               >
                 <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-                <span>WhatsApp: {COMPANY_INFO.whatsapp}</span>
+                <span>WhatsApp: {whatsapp}</span>
               </a>
 
               <div className="flex items-start gap-2.5 p-2 text-gray-400">
                 <MapPin className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                <span>Tolichowki, Shaikpet, Hyderabad</span>
+                <span className="leading-relaxed">{address}</span>
               </div>
             </div>
           </div>

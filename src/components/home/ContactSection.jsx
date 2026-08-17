@@ -3,10 +3,20 @@ import { Phone, MessageSquare, Mail, MapPin, Clock, ShieldCheck, Sparkles, Navig
 import SectionHeading from '../ui/SectionHeading';
 import GoogleMapEmbed from '../ui/GoogleMapEmbed';
 import ConsultationForm from './ConsultationForm';
-import { COMPANY_INFO } from '../../data/companyInfo';
+import { useAdminData } from '../../context/AdminDataContext';
 import { getGeneralWhatsAppUrl } from '../../utils/whatsapp';
 
 export default function ContactSection() {
+  const { settings } = useAdminData();
+
+  const phone = settings?.phone || '+91 8464930376';
+  const phoneRaw = settings?.phoneRaw || '+918464930376';
+  const whatsapp = settings?.whatsapp || '+91 8464930376';
+  const email = settings?.email || 'interiordesignerzameer@gmail.com';
+  const address = settings?.address || 'Door No. 8-1-301/A, Main Road, Tolichowki, Shaikpet, Hyderabad, Telangana 500008';
+  const workingDays = settings?.workingDays || 'Monday – Sunday';
+  const workingHours = settings?.workingHours || '9:00 AM – 9:00 PM';
+
   return (
     <section id="contact" className="py-20 sm:py-28 bg-luxury-surface/60 relative overflow-hidden">
       {/* Subtle Background Glow */}
@@ -32,8 +42,8 @@ export default function ContactSection() {
               
               {/* Phone Card */}
               <a
-                href={`tel:${COMPANY_INFO.phoneRaw}`}
-                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-luxury-gold/30 hover:border-luxury-gold"
+                href={`tel:${phoneRaw}`}
+                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-luxury-gold/30 hover:border-luxury-gold cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-luxury-walnut text-luxury-gold flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-luxury-gold group-hover:text-luxury-walnut transition-all">
                   <Phone className="w-4 h-4" />
@@ -43,7 +53,7 @@ export default function ContactSection() {
                     Direct Phone
                   </span>
                   <span className="font-sans font-bold tracking-tight text-sm sm:text-base text-luxury-walnut group-hover:text-luxury-gold-dark">
-                    {COMPANY_INFO.phone}
+                    {phone}
                   </span>
                 </div>
               </a>
@@ -53,7 +63,7 @@ export default function ContactSection() {
                 href={getGeneralWhatsAppUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-emerald-500/30 hover:border-emerald-500"
+                className="luxury-card rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 group border border-emerald-500/30 hover:border-emerald-500 cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 shadow-sm">
                   <MessageSquare className="w-4 h-4" />
@@ -63,7 +73,7 @@ export default function ContactSection() {
                     WhatsApp Chat
                   </span>
                   <span className="font-sans font-bold tracking-tight text-sm sm:text-base text-emerald-700">
-                    {COMPANY_INFO.whatsapp}
+                    {whatsapp}
                   </span>
                 </div>
               </a>
@@ -81,7 +91,7 @@ export default function ContactSection() {
                     Studio & Workshop Address
                   </h4>
                   <p className="text-xs sm:text-sm text-luxury-muted mt-0.5 font-medium leading-relaxed">
-                    {COMPANY_INFO.address.full}
+                    {address}
                   </p>
                 </div>
               </div>
@@ -95,7 +105,7 @@ export default function ContactSection() {
                     Working Hours
                   </h4>
                   <p className="text-xs text-luxury-muted mt-0.5 font-medium">
-                    {COMPANY_INFO.businessHours} (All 7 Days)
+                    {workingHours} ({workingDays})
                   </p>
                 </div>
               </div>
@@ -109,10 +119,10 @@ export default function ContactSection() {
                     Email
                   </h4>
                   <a
-                    href={`mailto:${COMPANY_INFO.email}`}
+                    href={`mailto:${email}`}
                     className="text-xs text-luxury-muted hover:text-luxury-gold font-medium truncate block"
                   >
-                    {COMPANY_INFO.email}
+                    {email}
                   </a>
                 </div>
               </div>

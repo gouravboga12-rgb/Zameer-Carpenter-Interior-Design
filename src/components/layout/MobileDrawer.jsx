@@ -2,10 +2,16 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { X, Phone, MessageSquare, MapPin, Calculator, ArrowRight } from 'lucide-react';
+import { useAdminData } from '../../context/AdminDataContext';
 import { COMPANY_INFO } from '../../data/companyInfo';
 import { getGeneralWhatsAppUrl } from '../../utils/whatsapp';
 
 export default function MobileDrawer({ isOpen, onClose, navLinks }) {
+  const { settings } = useAdminData();
+
+  const phoneRaw = settings?.phoneRaw || COMPANY_INFO.phoneRaw;
+  const address = settings?.address || 'Tolichowki, Shaikpet, Hyderabad, Telangana';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -87,7 +93,7 @@ export default function MobileDrawer({ isOpen, onClose, navLinks }) {
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <a
-                  href={`tel:${COMPANY_INFO.phoneRaw}`}
+                  href={`tel:${phoneRaw}`}
                   className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors border border-white/10"
                 >
                   <Phone className="w-4 h-4 text-luxury-gold" />
@@ -106,7 +112,7 @@ export default function MobileDrawer({ isOpen, onClose, navLinks }) {
 
               <div className="flex items-start gap-2 text-xs text-gray-400 pt-3">
                 <MapPin className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                <span>Tolichowki, Shaikpet, Hyderabad, Telangana</span>
+                <span className="leading-relaxed">{address}</span>
               </div>
             </div>
           </motion.div>

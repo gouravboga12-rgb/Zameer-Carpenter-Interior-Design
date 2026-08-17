@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Phone, ArrowUp } from 'lucide-react';
-import { COMPANY_INFO } from '../../data/companyInfo';
-import { getGeneralWhatsAppUrl } from '../../utils/whatsapp';
+import { useAdminData } from '../../context/AdminDataContext';
+import { buildWhatsAppUrl } from '../../utils/whatsapp';
 
 export default function FloatingActions() {
+  const { settings } = useAdminData();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -22,6 +23,14 @@ export default function FloatingActions() {
     });
   };
 
+  const callNumber = settings?.floatingPhone || settings?.phoneRaw || '+918464930376';
+  const displayPhone = settings?.phone || '+91 8464930376';
+  const waNumber = settings?.floatingWhatsapp || settings?.whatsappRaw || '918464930376';
+
+  const defaultWaUrl = `https://wa.me/${waNumber.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
+    'Hello Zameer Interiors,\n\nI am looking for interior design & bespoke carpentry services in Hyderabad. I would like to schedule a site consultation and discuss my project requirements.\n\nThank you!'
+  )}`;
+
   return (
     <div className="fixed bottom-6 sm:bottom-8 right-4 sm:right-6 z-40 flex flex-col items-end gap-3 pointer-events-auto">
       {/* Scroll to Top Button */}
@@ -37,7 +46,7 @@ export default function FloatingActions() {
 
       {/* Floating Call Button (Circular Icon) */}
       <a
-        href={`tel:${COMPANY_INFO.phoneRaw}`}
+        href={`tel:${callNumber}`}
         aria-label="Call Zameer Interiors"
         className="relative flex items-center justify-center w-12 h-12 rounded-full bg-luxury-walnut hover:bg-luxury-gold text-luxury-gold hover:text-luxury-walnut border border-luxury-gold/60 shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none ring-2 ring-luxury-gold/20"
       >
@@ -45,13 +54,13 @@ export default function FloatingActions() {
 
         {/* Hover Tooltip (Desktop) */}
         <span className="absolute right-14 px-3 py-1.5 rounded-lg bg-luxury-walnut text-xs font-medium text-[#FDFBF7] border border-luxury-gold/30 shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden md:block">
-          Call Now ({COMPANY_INFO.phone})
+          Call Now ({displayPhone})
         </span>
       </a>
 
       {/* Floating WhatsApp Button */}
       <a
-        href={getGeneralWhatsAppUrl()}
+        href={defaultWaUrl}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp with Zameer Interiors"
