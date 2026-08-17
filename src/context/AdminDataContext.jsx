@@ -511,6 +511,7 @@ export function AdminDataProvider({ children }) {
       location: formData.location || formData.address || 'Direct Inquiry',
       property_type: formData.propertyType || formData.spaceType || 'Residential Space',
       notes: formData.notes || formData.message || '',
+      custom_fields: formData.custom_fields || {},
       status: 'New',
       created_at: new Date().toISOString()
     };
@@ -522,9 +523,9 @@ export function AdminDataProvider({ children }) {
       return merged;
     });
 
-    // Try Supabase Insert (with email included)
+    // Try Supabase Insert
     try {
-      const { data } = await supabase.from('service_inquiries').insert([{
+      const rowToInsert = {
         service_id: newEntry.service_id,
         service_title: newEntry.service_title,
         name: newEntry.name,
@@ -533,10 +534,22 @@ export function AdminDataProvider({ children }) {
         location: newEntry.location,
         property_type: newEntry.property_type,
         notes: newEntry.notes,
+        custom_fields: newEntry.custom_fields,
         status: newEntry.status
-      }]).select();
+      };
 
-      if (data && data[0] && data[0].id) {
+      let { data, error } = await supabase.from('service_inquiries').insert([rowToInsert]).select();
+
+      if (error && error.message && error.message.includes('custom_fields')) {
+        const { custom_fields, ...fallbackRow } = rowToInsert;
+        const res = await supabase.from('service_inquiries').insert([fallbackRow]).select();
+        data = res.data;
+        error = res.error;
+      }
+
+      if (error) {
+        console.error('Supabase service_inquiries insert error (Check RLS policies):', error);
+      } else if (data && data[0] && data[0].id) {
         setServiceInquiries(prev => {
           const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
           localStorage.setItem('zameer_service_inquiries', JSON.stringify(updated));
@@ -544,7 +557,7 @@ export function AdminDataProvider({ children }) {
         });
       }
     } catch (e) {
-      console.warn('Saved locally, Supabase insert deferred:', e);
+      console.error('Supabase insert exception:', e);
     }
 
     // Build WhatsApp URL with full details & Open
@@ -586,7 +599,7 @@ export function AdminDataProvider({ children }) {
 
     // Try Supabase Insert
     try {
-      const { data } = await supabase.from('contact_inquiries').insert([{
+      const { data, error } = await supabase.from('contact_inquiries').insert([{
         name: newEntry.name,
         phone: newEntry.phone,
         email: newEntry.email,
@@ -597,7 +610,9 @@ export function AdminDataProvider({ children }) {
         status: newEntry.status
       }]).select();
 
-      if (data && data[0] && data[0].id) {
+      if (error) {
+        console.error('Supabase contact_inquiries insert error (Check RLS policies):', error);
+      } else if (data && data[0] && data[0].id) {
         setContactInquiries(prev => {
           const updated = prev.map(item => item.id === tempId ? { ...item, id: data[0].id } : item);
           localStorage.setItem('zameer_contact_inquiries', JSON.stringify(updated));
@@ -605,16 +620,16 @@ export function AdminDataProvider({ children }) {
         });
       }
     } catch (e) {
-      console.warn('Saved locally, Supabase insert deferred:', e);
+      console.error('Saved locally, Supabase insert deferred:', e);
     }
 
-    // Build WhatsApp URL with full details & Open
+    // Build WhatsApp URL & Open
     const waUrl = getConsultationWhatsAppUrl({
       name: newEntry.name,
       phone: newEntry.phone,
-      service: formData.serviceTitle || formData.service || 'Complete Home Interior Design',
+      service: formData.service || 'Complete Home Interior Design',
       spaceType: newEntry.property_type,
-      message: newEntry.notes
+      notes: newEntry.notes
     });
     window.open(waUrl, '_blank');
     return newEntry;
