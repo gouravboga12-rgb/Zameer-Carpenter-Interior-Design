@@ -216,28 +216,15 @@ export default function AdminServiceInquiries() {
                 {/* Direct Action Buttons: Call, WhatsApp, Status Selector, Delete */}
                 <div className="pt-2 border-t border-luxury-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                   
-                  {/* Quick Action Badges */}
+                  {/* Direct Call Quick Action Button */}
                   <div className="flex items-center gap-2">
-                    {/* Direct Call Button */}
                     <a
                       href={`tel:${cleanPhone}`}
-                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-luxury-gold text-xs font-bold shadow-xs transition-colors"
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-luxury-walnut hover:bg-luxury-charcoal text-luxury-gold text-xs font-bold shadow-xs transition-colors cursor-pointer"
                       title="Call Customer Directly"
                     >
                       <Phone className="w-3.5 h-3.5" />
                       <span>Call {item.phone}</span>
-                    </a>
-
-                    {/* Direct WhatsApp Button */}
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors"
-                      title="Open WhatsApp Chat with Pre-filled Service Message"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      <span>WhatsApp Customer</span>
                     </a>
                   </div>
 
