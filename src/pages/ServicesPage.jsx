@@ -59,8 +59,8 @@ export default function ServicesPage() {
       </section>
 
       {/* 2. Interactive Service Selection Tabs */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 p-2 bg-luxury-surface/80 rounded-3xl border border-luxury-border">
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mb-10 sm:mb-12">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-3 p-1.5 sm:p-2.5 bg-luxury-surface/80 rounded-2xl sm:rounded-3xl border border-luxury-border">
           {servicesList.map((service) => {
             const Icon = getServiceIcon(service.iconName);
             const isActive = service.id === selectedServiceId;
@@ -69,23 +69,23 @@ export default function ServicesPage() {
               <button
                 key={service.id}
                 onClick={() => handleSelectService(service.id)}
-                className={`p-4 rounded-2xl flex flex-col items-center text-center gap-2.5 transition-all duration-300 relative border cursor-pointer ${
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 sm:gap-2.5 transition-all duration-300 relative border cursor-pointer ${
                   isActive
-                    ? 'bg-luxury-walnut text-[#FDFBF7] border-luxury-gold shadow-lg shadow-luxury-gold/10 scale-105 z-10'
-                    : 'bg-luxury-card text-luxury-muted hover:text-luxury-walnut hover:border-luxury-gold/40 border-luxury-border shadow-sm'
+                    ? 'bg-luxury-walnut text-[#FDFBF7] border-luxury-gold shadow-md scale-102 z-10'
+                    : 'bg-luxury-card text-luxury-muted hover:text-luxury-walnut hover:border-luxury-gold/40 border-luxury-border shadow-2xs'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute -top-1.5 w-3 h-3 rounded-full bg-luxury-gold ring-4 ring-luxury-bg" />
+                  <span className="absolute -top-1 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-luxury-gold ring-2 ring-luxury-bg" />
                 )}
 
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-colors shrink-0 ${
                   isActive ? 'bg-luxury-gold text-luxury-walnut' : 'bg-luxury-surface text-luxury-charcoal'
                 }`}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </div>
 
-                <span className="text-xs font-bold leading-snug tracking-tight font-heading">
+                <span className="text-[10px] sm:text-xs font-bold leading-tight tracking-tight font-heading line-clamp-2">
                   {service.shortTitle}
                 </span>
               </button>
