@@ -27,7 +27,7 @@ export default function AboutUsPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-luxury-gold/20 border border-luxury-gold/40 text-luxury-gold text-xs sm:text-sm font-semibold tracking-wider uppercase">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>30+ Years of Master Woodworking Lineage</span>
+            <span>15+ Years of Master Woodworking Lineage</span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
@@ -67,7 +67,7 @@ export default function AboutUsPage() {
 
             {/* Floating Experience Badge */}
             <div className="absolute -top-6 -right-6 hidden sm:flex flex-col items-center justify-center w-32 h-32 rounded-3xl bg-luxury-gold text-luxury-walnut shadow-gold-glow border-2 border-luxury-walnut">
-              <span className="font-heading text-3xl font-black">30+</span>
+              <span className="font-heading text-3xl font-black">15+</span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-center leading-tight">
                 Years of Heritage
               </span>
@@ -142,7 +142,7 @@ export default function AboutUsPage() {
               <div className="w-12 h-12 rounded-xl bg-luxury-walnut text-luxury-gold flex items-center justify-center">
                 <Award className="w-6 h-6" />
               </div>
-              <h3 className="font-heading text-xl font-bold text-luxury-walnut">30+ Years Master Woodcraft</h3>
+              <h3 className="font-heading text-xl font-bold text-luxury-walnut">15+ Years Master Woodcraft</h3>
               <p className="text-xs sm:text-sm text-luxury-muted leading-relaxed">
                 Generational carpentry mastery ensuring solid joinery, durable carcasses, and rich architectural finishes that withstand decades of usage.
               </p>

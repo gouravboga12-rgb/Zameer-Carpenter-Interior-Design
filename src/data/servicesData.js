@@ -52,10 +52,10 @@ export const SERVICES_DATA = [
     numericId: 3,
     title: "Custom Carpentry & Woodwork",
     shortTitle: "Bespoke Carpentry",
-    tagline: "30+ years of master woodworking heritage, precision joinery, and custom fabrication.",
+    tagline: "15+ years of master woodworking heritage, precision joinery, and custom fabrication.",
     iconName: "Hammer",
     image: "/images/service_custom_carpentry.jpg",
-    highlight: "30+ Years Master Woodcraft",
+    highlight: "15+ Years Master Woodcraft",
     description: "True luxury is born in the details of the wood. Our seasoned carpenters handcraft solid wood main entrance doors, safety doors, decorative wooden arches, bespoke partition louvers, and bespoke furniture directly in our local workshop.",
     subservices: [
       "Custom Carpentry",

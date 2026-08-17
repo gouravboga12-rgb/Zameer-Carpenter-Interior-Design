@@ -3,7 +3,7 @@ export const COMPANY_INFO = {
   shortName: "Zameer Interiors",
   tagline: "We Design & Craft Your Dream Spaces",
   subTagline: "Master woodcraft meets modern functional interiors. Bespoke carpentry, 3D visualization, and complete turnkey execution in Hyderabad.",
-  experienceYears: "30+",
+  experienceYears: "15+",
   phone: "+91 8464930376",
   phoneRaw: "+918464930376",
   whatsapp: "+91 8464930376",
@@ -43,7 +43,7 @@ export const COMPANY_INFO = {
     "Nanakramguda"
   ],
   stats: [
-    { label: "Years of Craftsmanship", value: "30+" },
+    { label: "Years of Craftsmanship", value: "15+" },
     { label: "Turnkey Projects Executed", value: "500+" },
     { label: "Customer Satisfaction", value: "100%" },
     { label: "Factory Finish Guarantee", value: "10-Yr" }

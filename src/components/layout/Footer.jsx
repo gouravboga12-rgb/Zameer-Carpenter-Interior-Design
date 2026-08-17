@@ -35,13 +35,13 @@ export default function Footer() {
             </Link>
             
             <p className="text-sm leading-relaxed text-gray-300 max-w-md">
-              Hyderabad’s premier bespoke interior architecture and master woodworking studio. Bringing over 30 years of generational craftsmanship, photorealistic 3D visualization, and seamless turnkey execution to Tolichowki, Shaikpet, and across Greater Hyderabad.
+              Hyderabad’s premier bespoke interior architecture and master woodworking studio. Bringing over 15 years of master craftsmanship, photorealistic 3D visualization, and seamless turnkey execution to Tolichowki, Shaikpet, and across Greater Hyderabad.
             </p>
 
             <div className="flex flex-wrap gap-2 pt-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-luxury-gold/10 border border-luxury-gold/30 text-luxury-gold text-xs font-semibold">
                 <Sparkles className="w-3 h-3" />
-                <span>30+ Years Master Woodcraft</span>
+                <span>15+ Years Master Woodcraft</span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs">
                 <span>Direct Workshop Pricing</span>

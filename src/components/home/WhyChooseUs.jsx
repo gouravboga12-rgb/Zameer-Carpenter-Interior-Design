@@ -8,9 +8,9 @@ const PILLARS = [
   {
     icon: Award,
     title: "Master Carpentry Experience",
-    highlight: "30+ Years of Craftsmanship",
-    desc: "Decades of master woodworking lineage in Hyderabad. Our seasoned carpenters bring fine handcrafted joinery, structural longevity, and bespoke elegance to every project.",
-    tag: "Generational Expertise"
+    highlight: "15+ Years of Craftsmanship",
+    desc: "Over 15 years of master woodworking lineage in Hyderabad. Our seasoned carpenters bring fine handcrafted joinery, structural longevity, and bespoke elegance to every project.",
+    tag: "Master Expertise"
   },
   {
     icon: Compass,
