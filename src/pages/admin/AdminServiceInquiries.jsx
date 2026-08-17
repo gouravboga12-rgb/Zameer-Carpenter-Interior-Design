@@ -173,14 +173,14 @@ export default function AdminServiceInquiries() {
                     <span className="text-[10px] font-bold uppercase text-luxury-muted tracking-wider block">
                       Email Address
                     </span>
-                    {item.email ? (
+                    {(item.email || (item.notes && item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1])) ? (
                       <a
-                        href={`mailto:${item.email}`}
+                        href={`mailto:${item.email || item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1]}`}
                         className="text-xs text-luxury-charcoal hover:underline flex items-center gap-1.5 truncate"
-                        title={item.email}
+                        title={item.email || item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1]}
                       >
                         <Mail className="w-3.5 h-3.5 text-luxury-gold shrink-0" />
-                        <span className="truncate">{item.email}</span>
+                        <span className="truncate">{item.email || item.notes.match(/\[Email:\s*([^\]]+)\]/)?.[1]}</span>
                       </a>
                     ) : (
                       <span className="text-xs text-luxury-muted italic">Not provided</span>
@@ -235,14 +235,14 @@ export default function AdminServiceInquiries() {
                 )}
 
                 {/* Project Notes / Dimensions */}
-                {item.notes && (
+                {(item.notes && item.notes.replace(/\[Email:\s*([^\]]+)\]/g, '').trim()) && (
                   <div className="bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/20 space-y-1">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-luxury-gold-dark">
                       <FileText className="w-3.5 h-3.5" />
                       <span>Project Notes & Dimensions:</span>
                     </div>
                     <p className="text-xs text-luxury-walnut leading-relaxed whitespace-pre-line">
-                      {item.notes}
+                      {item.notes.replace(/\[Email:\s*([^\]]+)\]/g, '').trim()}
                     </p>
                   </div>
                 )}

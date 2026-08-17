@@ -523,7 +523,7 @@ export function AdminDataProvider({ children }) {
       return merged;
     });
 
-    // Try Supabase Insert
+    // Try Supabase Insert with schema resilience
     try {
       const rowToInsert = {
         service_id: newEntry.service_id,
@@ -540,11 +540,20 @@ export function AdminDataProvider({ children }) {
 
       let { data, error } = await supabase.from('service_inquiries').insert([rowToInsert]).select();
 
-      if (error && error.message && error.message.includes('custom_fields')) {
-        const { custom_fields, ...fallbackRow } = rowToInsert;
-        const res = await supabase.from('service_inquiries').insert([fallbackRow]).select();
-        data = res.data;
-        error = res.error;
+      // If schema error (e.g. column 'email' missing in Supabase schema), auto-retry safely
+      if (error && (error.code === 'PGRST204' || (error.message && error.message.includes('column')))) {
+        const safePayload = { ...rowToInsert };
+        if (error.message && error.message.includes('email')) {
+          safePayload.notes = (safePayload.notes ? safePayload.notes + '\n\n' : '') + `[Email: ${safePayload.email}]`;
+          delete safePayload.email;
+        }
+        if (error.message && error.message.includes('custom_fields')) {
+          delete safePayload.custom_fields;
+        }
+
+        const retryRes = await supabase.from('service_inquiries').insert([safePayload]).select();
+        data = retryRes.data;
+        error = retryRes.error;
       }
 
       if (error) {
