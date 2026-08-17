@@ -167,6 +167,29 @@ export function getDefaultFormFieldsForService(serviceId, serviceTitle = 'this s
   ];
 }
 
+const SERVICE_CONFIG_TAG_REGEX = /<!--SERVICES_CONFIG:([\s\S]*?)-->/;
+
+export function encodeServiceConfigInDescription(description, config) {
+  const cleanDescription = (description || '').replace(SERVICE_CONFIG_TAG_REGEX, '').trim();
+  const configString = JSON.stringify(config);
+  return `${cleanDescription}\n\n<!--SERVICES_CONFIG:${configString}-->`;
+}
+
+export function decodeServiceConfigFromDescription(rawDescription) {
+  if (!rawDescription) return { description: '', config: null };
+  const match = rawDescription.match(SERVICE_CONFIG_TAG_REGEX);
+  const cleanDescription = rawDescription.replace(SERVICE_CONFIG_TAG_REGEX, '').trim();
+  if (match && match[1]) {
+    try {
+      const config = JSON.parse(match[1]);
+      return { description: cleanDescription, config };
+    } catch (e) {
+      console.warn('Failed to parse service config from description:', e);
+    }
+  }
+  return { description: cleanDescription, config: null };
+}
+
 function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedServiceIds()) {
   const deletedSet = new Set(deletedIds);
   const map = new Map();
@@ -352,24 +375,27 @@ export function AdminDataProvider({ children }) {
       // Sync Services
       const { data: dbServices, error: sErr } = await supabase.from('services').select('*').order('numeric_id', { ascending: true });
       if (!sErr && dbServices) {
-        const formatted = dbServices.map(s => ({
-          id: s.id,
-          numericId: s.numeric_id,
-          title: s.title,
-          shortTitle: s.short_title,
-          iconName: s.icon_name,
-          highlight: s.highlight,
-          description: s.description,
-          image: s.image,
-          subservices: s.subservices || [],
-          features: s.features || [],
-          propertyTypes: s.property_types || s.propertyTypes || [],
-          formFields: s.form_fields || s.formFields || null,
-          formHeading: s.form_heading || s.formHeading,
-          formSubtitle: s.form_subtitle || s.formSubtitle,
-          submitButtonText: s.submit_button_text || s.submitButtonText,
-          formNotesPlaceholder: s.form_notes_placeholder || s.formNotesPlaceholder
-        }));
+        const formatted = dbServices.map(s => {
+          const { description: cleanDesc, config } = decodeServiceConfigFromDescription(s.description);
+          return {
+            id: s.id,
+            numericId: s.numeric_id,
+            title: s.title,
+            shortTitle: s.short_title,
+            iconName: s.icon_name,
+            highlight: s.highlight,
+            description: cleanDesc || s.description,
+            image: s.image,
+            subservices: s.subservices || [],
+            features: s.features || [],
+            propertyTypes: config?.propertyTypes || s.property_types || s.propertyTypes || [],
+            formFields: config?.formFields || s.form_fields || s.formFields || null,
+            formHeading: config?.formHeading || s.form_heading || s.formHeading,
+            formSubtitle: config?.formSubtitle || s.form_subtitle || s.formSubtitle,
+            submitButtonText: config?.submitButtonText || s.submit_button_text || s.submitButtonText,
+            formNotesPlaceholder: config?.formNotesPlaceholder || s.form_notes_placeholder || s.formNotesPlaceholder
+          };
+        });
         const mergedServices = mergeServicesWithDefaults(formatted);
         setServices(mergedServices);
         localStorage.setItem('zameer_services_cache', JSON.stringify(mergedServices));
@@ -599,9 +625,19 @@ export function AdminDataProvider({ children }) {
       formNotesPlaceholder: newService.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
     };
 
-    const updated = [...services, serviceObj];
+    const updated = [...services.filter(s => s.id !== sId), serviceObj];
     setServices(updated);
     localStorage.setItem('zameer_services_cache', JSON.stringify(updated));
+
+    const config = {
+      formFields: serviceObj.formFields,
+      formHeading: serviceObj.formHeading,
+      formSubtitle: serviceObj.formSubtitle,
+      submitButtonText: serviceObj.submitButtonText,
+      formNotesPlaceholder: serviceObj.formNotesPlaceholder,
+      propertyTypes: serviceObj.propertyTypes
+    };
+    const encodedDescription = encodeServiceConfigInDescription(serviceObj.description, config);
 
     try {
       await supabase.from('services').upsert([{
@@ -611,7 +647,7 @@ export function AdminDataProvider({ children }) {
         short_title: serviceObj.shortTitle,
         icon_name: serviceObj.iconName,
         highlight: serviceObj.highlight,
-        description: serviceObj.description,
+        description: encodedDescription,
         image: serviceObj.image,
         subservices: serviceObj.subservices,
         features: serviceObj.features,
@@ -631,7 +667,7 @@ export function AdminDataProvider({ children }) {
           short_title: serviceObj.shortTitle,
           icon_name: serviceObj.iconName,
           highlight: serviceObj.highlight,
-          description: serviceObj.description,
+          description: encodedDescription,
           image: serviceObj.image,
           subservices: serviceObj.subservices,
           features: serviceObj.features
@@ -649,6 +685,16 @@ export function AdminDataProvider({ children }) {
 
     const target = updated.find(s => s.id === id);
     if (target) {
+      const config = {
+        formFields: target.formFields,
+        formHeading: target.formHeading,
+        formSubtitle: target.formSubtitle,
+        submitButtonText: target.submitButtonText,
+        formNotesPlaceholder: target.formNotesPlaceholder,
+        propertyTypes: target.propertyTypes
+      };
+      const encodedDescription = encodeServiceConfigInDescription(target.description, config);
+
       try {
         await supabase.from('services').upsert([{
           id: target.id,
@@ -657,7 +703,7 @@ export function AdminDataProvider({ children }) {
           short_title: target.shortTitle,
           icon_name: target.iconName,
           highlight: target.highlight,
-          description: target.description,
+          description: encodedDescription,
           image: target.image,
           subservices: target.subservices,
           features: target.features,
@@ -677,7 +723,7 @@ export function AdminDataProvider({ children }) {
             short_title: target.shortTitle,
             icon_name: target.iconName,
             highlight: target.highlight,
-            description: target.description,
+            description: encodedDescription,
             image: target.image,
             subservices: target.subservices,
             features: target.features

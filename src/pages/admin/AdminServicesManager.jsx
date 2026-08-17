@@ -35,6 +35,7 @@ export default function AdminServicesManager() {
   const [activeFormTab, setActiveFormTab] = useState('catalog'); // 'catalog' | 'inquiry-form'
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const formRef = useRef(null);
 
   // Field Editor Sub-State (For Adding or Editing a specific field inside the form)
@@ -298,6 +299,60 @@ export default function AdminServicesManager() {
 
     setIsCreating(false);
     setEditingService(null);
+  };
+
+  const handleDirectSaveFormGlobally = async () => {
+    setUploading(true);
+    setUploadError('');
+    setSaveSuccessMsg('');
+
+    try {
+      const subs = (formData.subservicesText || '')
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const feats = (formData.featuresText || '')
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const propertyTypeField = formData.formFields.find(f => f.id === 'propertyType' || f.type === 'select');
+      const pTypes = (propertyTypeField && propertyTypeField.options && propertyTypeField.options.length > 0)
+        ? propertyTypeField.options
+        : ['1 BHK Apartment', '2 BHK Apartment', '3 BHK Apartment', 'Villa / Duplex', 'Other'];
+
+      const sId = editingService ? editingService.id : (formData.id || 'service_' + Date.now());
+      const payload = {
+        id: sId,
+        title: formData.title || 'Custom Service',
+        shortTitle: formData.shortTitle || formData.title || 'Custom Service',
+        iconName: formData.iconName || 'Home',
+        highlight: formData.highlight || 'Custom Fit-Out',
+        description: formData.description || '',
+        image: formData.image || (editingService ? editingService.image : 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80'),
+        subservices: subs,
+        features: feats,
+        propertyTypes: pTypes,
+        formFields: formData.formFields,
+        formHeading: formData.formHeading || `Get Free Quote for ${formData.shortTitle || formData.title}`,
+        formSubtitle: formData.formSubtitle || `Schedule a free laser site measurement and get a transparent itemized estimate for ${formData.title || 'this service'}.`,
+        submitButtonText: formData.submitButtonText || `Request Free Quote for ${formData.shortTitle || formData.title}`
+      };
+
+      if (editingService) {
+        await updateService(editingService.id, payload);
+      } else {
+        await addService(payload);
+      }
+
+      setSaveSuccessMsg(`Form fields for "${formData.shortTitle || formData.title}" updated globally in real-time across all devices!`);
+      setTimeout(() => setSaveSuccessMsg(''), 7000);
+    } catch (err) {
+      setUploadError('Failed to save globally: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDelete = async (id, title) => {
@@ -573,7 +628,24 @@ export default function AdminServicesManager() {
             {activeFormTab === 'inquiry-form' && (
               <div className="space-y-6 animate-fadeIn">
                 
-                {/* Info Callout */}
+                {/* Global Save Success Message Banner */}
+                {saveSuccessMsg && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/15 border-2 border-emerald-500 text-emerald-900 text-xs font-bold flex items-center justify-between gap-3 shadow-md animate-fadeIn">
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span>{saveSuccessMsg}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSaveSuccessMsg('')}
+                      className="p-1 rounded-lg text-emerald-700 hover:bg-emerald-200/50"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Info Callout & Actions */}
                 <div className="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/30 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2 font-bold text-xs text-emerald-800">
@@ -585,7 +657,7 @@ export default function AdminServicesManager() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={handleResetToStandardFields}
@@ -599,10 +671,30 @@ export default function AdminServicesManager() {
                     <button
                       type="button"
                       onClick={handleOpenAddField}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm cursor-pointer transition-transform active:scale-95"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm cursor-pointer transition-transform active:scale-95"
                     >
                       <PlusCircle className="w-4 h-4" />
-                      <span>+ Add New Field</span>
+                      <span>+ Add Field</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={uploading}
+                      onClick={handleDirectSaveFormGlobally}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold text-xs font-bold shadow-md cursor-pointer transition-transform active:scale-95 disabled:opacity-50"
+                      title="Save fields globally to live website"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5 text-luxury-gold" />
+                          <span>Save Form Globally</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -926,6 +1018,41 @@ export default function AdminServicesManager() {
                       );
                     })
                   )}
+                </div>
+
+                {/* Bottom Bar inside Tab 2 for direct saving */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-luxury-border bg-luxury-surface/50 p-4 rounded-2xl">
+                  <span className="text-xs font-semibold text-luxury-muted">
+                    Active Defined Fields: <strong className="text-luxury-walnut">{formData.formFields.length}</strong>
+                  </span>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleOpenAddField}
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold cursor-pointer transition-transform active:scale-95"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>+ Add Another Field</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={uploading}
+                      onClick={handleDirectSaveFormGlobally}
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl bg-luxury-walnut hover:bg-black text-luxury-gold text-xs font-bold shadow-md cursor-pointer transition-transform active:scale-95 disabled:opacity-50"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Saving Globally...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 text-luxury-gold" />
+                          <span>Save Form Fields Globally</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
               </div>
