@@ -143,37 +143,35 @@ export default function ServiceInquiryPage() {
     }
   };
 
-  // Reset form when serviceId or currentService changes
-  useEffect(() => {
-    if (currentService) {
-      const activeFields = (currentService.formFields && currentService.formFields.length > 0)
-        ? currentService.formFields
-        : (SERVICE_PROPERTY_TYPES[currentService.id] ? [
-            { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
-            { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
-            { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
-            { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: SERVICE_PROPERTY_TYPES[currentService.id] },
-            { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
-            { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes...', required: false }
-          ] : [
-            { id: 'name', label: 'Full Name', type: 'text', placeholder: 'e.g. Mohammed Ahmed', required: true },
-            { id: 'phone', label: 'Mobile Number', type: 'tel', placeholder: '98765 43210', required: true },
-            { id: 'email', label: 'Email Address', type: 'email', placeholder: 'e.g. ahmed@gmail.com', required: false },
-            { id: 'propertyType', label: 'Space / Property Type', type: 'select', placeholder: 'Select Space', required: true, options: ['1 BHK Apartment', '2 BHK Apartment', '3 BHK Apartment', 'Villa / Duplex', 'Other'] },
-            { id: 'address', label: 'Property Address / Location', type: 'text', placeholder: 'e.g. Flat / House No, Area, City', required: true },
-            { id: 'notes', label: 'Project Notes & Dimensions', type: 'textarea', placeholder: 'Tell us about room sizes...', required: false }
-          ]);
+  const prevServiceIdRef = React.useRef(serviceId);
 
-      const nextData = {};
-      activeFields.forEach(f => {
-        nextData[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
+  // Reset form ONLY when user navigates to a DIFFERENT service URL
+  useEffect(() => {
+    if (prevServiceIdRef.current !== serviceId) {
+      prevServiceIdRef.current = serviceId;
+      const init = {};
+      formFields.forEach(f => {
+        init[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
       });
-      setFormData(nextData);
+      setFormData(init);
       setErrors({});
       setIsSuccess(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // If same service but dynamic formFields definition was updated, merge new fields without wiping user inputs
+      setFormData(prev => {
+        let changed = false;
+        const updated = { ...prev };
+        formFields.forEach(f => {
+          if (updated[f.id] === undefined) {
+            updated[f.id] = f.type === 'select' ? (f.options?.[0] || '') : '';
+            changed = true;
+          }
+        });
+        return changed ? updated : prev;
+      });
     }
-  }, [serviceId, currentService]);
+  }, [serviceId, formFields]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
