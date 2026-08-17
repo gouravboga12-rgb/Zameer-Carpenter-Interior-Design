@@ -81,15 +81,17 @@ export default function ServiceInquiryPage() {
   const currentService = servicesList.find((s) => s.id === serviceId) || servicesList[0];
   const ServiceIcon = SERVICE_ICONS[currentService?.iconName] || Home;
 
-  const propertyTypes = SERVICE_PROPERTY_TYPES[currentService?.id] || [
-    '1 BHK Apartment',
-    '2 BHK Apartment',
-    '3 BHK Apartment',
-    '4 BHK / Penthouse',
-    'Villa / Duplex House',
-    'Independent House',
-    'Commercial / Other'
-  ];
+  const propertyTypes = (currentService?.propertyTypes && currentService.propertyTypes.length > 0)
+    ? currentService.propertyTypes
+    : (SERVICE_PROPERTY_TYPES[currentService?.id] || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        '4 BHK / Penthouse',
+        'Villa / Duplex House',
+        'Independent House',
+        'Commercial / Other'
+      ]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -109,13 +111,15 @@ export default function ServiceInquiryPage() {
   // Reset form when serviceId changes
   useEffect(() => {
     if (currentService) {
-      const types = SERVICE_PROPERTY_TYPES[currentService.id] || [
-        '1 BHK Apartment',
-        '2 BHK Apartment',
-        '3 BHK Apartment',
-        'Villa / Duplex',
-        'Other'
-      ];
+      const types = (currentService.propertyTypes && currentService.propertyTypes.length > 0)
+        ? currentService.propertyTypes
+        : (SERVICE_PROPERTY_TYPES[currentService.id] || [
+            '1 BHK Apartment',
+            '2 BHK Apartment',
+            '3 BHK Apartment',
+            'Villa / Duplex',
+            'Other'
+          ]);
       setFormData(prev => ({
         ...prev,
         propertyType: types[0]
@@ -266,22 +270,17 @@ export default function ServiceInquiryPage() {
                   </h4>
                   
                   <div className="space-y-1.5">
-                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
-                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                      <span>IS:710 Marine-Grade 100% Boiling-Water-Proof Plywood</span>
-                    </div>
-                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
-                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                      <span>Authentic German Soft-Close Fittings (Blum / Hettich / Hafele)</span>
-                    </div>
-                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
-                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                      <span>In-house Tolichowki master carpenters with zero middleman markups</span>
-                    </div>
-                    <div className="flex items-start gap-2 text-xs text-luxury-charcoal">
-                      <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
-                      <span>Millimeter laser site measurement and 3D preview before fabrication</span>
-                    </div>
+                    {((currentService.features && currentService.features.length > 0) ? currentService.features : [
+                      'IS:710 Marine-Grade 100% Boiling-Water-Proof Plywood',
+                      'Authentic German Soft-Close Fittings (Blum / Hettich / Hafele)',
+                      'In-house master carpenters with zero middleman markups',
+                      'Millimeter laser site measurement and 3D preview before fabrication'
+                    ]).map((feat, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-luxury-charcoal">
+                        <Check className="w-3.5 h-3.5 text-luxury-gold shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -398,7 +397,7 @@ export default function ServiceInquiryPage() {
                     <span>Direct Service Consultation</span>
                   </div>
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-luxury-walnut">
-                    Get Free Quote for {currentService.shortTitle}
+                    {currentService.formHeading || `Get Free Quote for ${currentService.shortTitle || currentService.title}`}
                   </h2>
                   <p className="text-xs sm:text-sm text-luxury-muted mt-1 leading-relaxed">
                     Schedule a free laser site measurement and get a transparent itemized estimate for <strong className="text-luxury-walnut">{currentService.title}</strong>.
@@ -532,7 +531,7 @@ export default function ServiceInquiryPage() {
                     rows={3}
                     value={formData.notes}
                     onChange={handleChange}
-                    placeholder={`Tell us about room sizes, preferred finishes (Acrylic, PU, Teak, Veneer), or specific ideas for ${currentService.shortTitle}...`}
+                    placeholder={currentService.formNotesPlaceholder || `Tell us about room sizes, preferred finishes (Acrylic, PU, Teak, Veneer), or specific ideas for ${currentService.shortTitle || currentService.title}...`}
                     className="w-full px-4 py-3 rounded-xl bg-luxury-surface/70 border border-luxury-border text-xs sm:text-sm text-luxury-charcoal focus:outline-none focus:border-luxury-gold resize-none"
                   />
                 </div>

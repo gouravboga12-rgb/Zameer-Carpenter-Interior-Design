@@ -59,19 +59,97 @@ function mergeProjectsWithDefaults(customOrDbProjects, deletedIds = getDeletedPr
   });
 }
 
+const DEFAULT_SERVICE_PROPERTY_TYPES = {
+  'complete-home-interiors': [
+    '1 BHK Apartment',
+    '2 BHK Apartment',
+    '3 BHK Apartment',
+    '4 BHK / Penthouse',
+    'Villa / Duplex House',
+    'Independent House',
+    'Full Home Renovation'
+  ],
+  'modular-kitchen-furniture': [
+    '1 BHK Apartment Kitchen',
+    '2 BHK / 3 BHK Apartment Kitchen',
+    '4 BHK / Penthouse Kitchen',
+    'Villa / Independent House Kitchen',
+    'Kitchen Remodeling / Renovation',
+    'Commercial / Office Pantry'
+  ],
+  'custom-carpentry-woodwork': [
+    '1 BHK / 2 BHK Apartment',
+    '3 BHK / 4 BHK Apartment',
+    'Villa / Independent House',
+    'Commercial Office / Shop',
+    'Existing Home Woodwork Modification'
+  ],
+  'wardrobes-storage-solutions': [
+    '1 BHK Apartment (Bedroom Wardrobe)',
+    '2 BHK / 3 BHK Apartment Wardrobes',
+    '4 BHK / Villa Wardrobes',
+    'Master Bedroom Only',
+    'Walk-in Closet / Loft Storage'
+  ],
+  'tv-units-wall-panels-ceilings': [
+    '1 BHK / 2 BHK Hall TV Unit',
+    '3 BHK / 4 BHK Living Room TV Unit & Ceiling',
+    'Master Bedroom TV & Accent Wall',
+    'Villa / Duplex Hall & Ceilings',
+    'Office / Commercial Feature Wall'
+  ],
+  'commercial-interiors-renovation': [
+    'Corporate Office / Workspace',
+    'Retail Shop / Showroom',
+    'Cafe / Restaurant',
+    'Clinic / Salon / Studio',
+    '1BHK / 2BHK / 3BHK Full Home Renovation'
+  ]
+};
+
 function mergeServicesWithDefaults(customOrDbServices, deletedIds = getDeletedServiceIds()) {
   const deletedSet = new Set(deletedIds);
   const map = new Map();
 
   DEFAULT_SERVICES.forEach(item => {
     if (!deletedSet.has(item.id)) {
-      map.set(item.id, item);
+      map.set(item.id, {
+        ...item,
+        propertyTypes: item.propertyTypes || DEFAULT_SERVICE_PROPERTY_TYPES[item.id] || [
+          '1 BHK Apartment',
+          '2 BHK Apartment',
+          '3 BHK Apartment',
+          '4 BHK / Penthouse',
+          'Villa / Duplex House',
+          'Independent House',
+          'Commercial / Other'
+        ],
+        formHeading: item.formHeading || `Book Free Site Visit for ${item.shortTitle || item.title}`,
+        formNotesPlaceholder: item.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
+      });
     }
   });
 
   (customOrDbServices || []).forEach(item => {
     if (!deletedSet.has(item.id)) {
-      map.set(item.id, item);
+      const existing = map.get(item.id) || {};
+      map.set(item.id, {
+        ...existing,
+        ...item,
+        subservices: item.subservices || existing.subservices || [],
+        features: item.features || existing.features || [],
+        propertyTypes: (item.propertyTypes && item.propertyTypes.length > 0)
+          ? item.propertyTypes
+          : (existing.propertyTypes || [
+              '1 BHK Apartment',
+              '2 BHK Apartment',
+              '3 BHK Apartment',
+              'Villa / Duplex',
+              'Other'
+            ]),
+        formHeading: item.formHeading || existing.formHeading || `Book Free Site Visit for ${item.shortTitle || item.title}`,
+        formNotesPlaceholder: item.formNotesPlaceholder || existing.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
+      });
     }
   });
 
@@ -429,7 +507,16 @@ export function AdminDataProvider({ children }) {
       description: newService.description,
       image: newService.image,
       subservices: newService.subservices || [],
-      features: newService.features || []
+      features: newService.features || [],
+      propertyTypes: newService.propertyTypes || [
+        '1 BHK Apartment',
+        '2 BHK Apartment',
+        '3 BHK Apartment',
+        'Villa / Duplex',
+        'Other'
+      ],
+      formHeading: newService.formHeading || `Book Free Site Visit for ${newService.shortTitle || newService.title}`,
+      formNotesPlaceholder: newService.formNotesPlaceholder || 'Describe your floor plan, dimensions, or specific design preferences...'
     };
 
     const updated = [...services, serviceObj];
@@ -447,10 +534,28 @@ export function AdminDataProvider({ children }) {
         description: serviceObj.description,
         image: serviceObj.image,
         subservices: serviceObj.subservices,
-        features: serviceObj.features
+        features: serviceObj.features,
+        property_types: serviceObj.propertyTypes,
+        form_heading: serviceObj.formHeading,
+        form_notes_placeholder: serviceObj.formNotesPlaceholder
       }]);
     } catch (e) {
-      console.warn('Service saved locally:', e);
+      try {
+        await supabase.from('services').upsert([{
+          id: serviceObj.id,
+          numeric_id: serviceObj.numericId,
+          title: serviceObj.title,
+          short_title: serviceObj.shortTitle,
+          icon_name: serviceObj.iconName,
+          highlight: serviceObj.highlight,
+          description: serviceObj.description,
+          image: serviceObj.image,
+          subservices: serviceObj.subservices,
+          features: serviceObj.features
+        }]);
+      } catch (err2) {
+        console.warn('Service saved in local cache:', err2);
+      }
     }
   };
 
@@ -472,10 +577,28 @@ export function AdminDataProvider({ children }) {
           description: target.description,
           image: target.image,
           subservices: target.subservices,
-          features: target.features
+          features: target.features,
+          property_types: target.propertyTypes,
+          form_heading: target.formHeading,
+          form_notes_placeholder: target.formNotesPlaceholder
         }]);
       } catch (e) {
-        console.warn('Service update saved locally:', e);
+        try {
+          await supabase.from('services').upsert([{
+            id: target.id,
+            numeric_id: target.numericId,
+            title: target.title,
+            short_title: target.shortTitle,
+            icon_name: target.iconName,
+            highlight: target.highlight,
+            description: target.description,
+            image: target.image,
+            subservices: target.subservices,
+            features: target.features
+          }]);
+        } catch (err2) {
+          console.warn('Service update saved in local cache:', err2);
+        }
       }
     }
   };
