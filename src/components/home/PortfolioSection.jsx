@@ -8,7 +8,7 @@ import { PORTFOLIO_CATEGORIES, PORTFOLIO_PROJECTS, REAL_PROJECT_VIDEOS } from '.
 import { useAdminData } from '../../context/AdminDataContext';
 
 export default function PortfolioSection({ isHomePage = false }) {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('All Projects');
   const [activeModalProject, setActiveModalProject] = useState(null);
   const { projects } = useAdminData();
 
@@ -22,9 +22,34 @@ export default function PortfolioSection({ isHomePage = false }) {
   // Filter items smoothly
   const filteredItems = useMemo(() => {
     let items = allMediaItems;
-    if (selectedCategory === 'Video Walkthroughs') {
-      items = allMediaItems.filter((p) => p.type === 'video' || !!p.videoUrl);
-    } else if (selectedCategory !== 'All') {
+    if (selectedCategory === 'All' || selectedCategory === 'All Projects') {
+      items = allMediaItems;
+    } else if (
+      selectedCategory === 'Ongoing Projects' || 
+      selectedCategory === 'Ongoing projects' ||
+      selectedCategory === 'Up Coming Projects' || 
+      selectedCategory === 'Upcoming Projects'
+    ) {
+      items = allMediaItems.filter((p) => 
+        p.category === 'Ongoing Projects' || 
+        p.category === 'Ongoing projects' || 
+        p.category === 'Up Coming Projects' || 
+        p.category === 'Upcoming Projects' ||
+        p.category === 'All Projects'
+      );
+    } else if (
+      selectedCategory === 'Completed Projects' || 
+      selectedCategory === 'Completed  Projects' || 
+      selectedCategory === 'Recent Projects'
+    ) {
+      items = allMediaItems.filter((p) => 
+        p.category === 'Completed Projects' || 
+        p.category === 'Completed  Projects' || 
+        p.category === 'Recent Projects' || 
+        p.category === 'All Projects' ||
+        (p.category !== 'Ongoing Projects' && p.category !== 'Ongoing projects' && p.category !== 'Up Coming Projects' && p.category !== 'Upcoming Projects')
+      );
+    } else {
       items = allMediaItems.filter((p) => p.category === selectedCategory);
     }
     
@@ -65,19 +90,17 @@ export default function PortfolioSection({ isHomePage = false }) {
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-12">
           {PORTFOLIO_CATEGORIES.map((cat) => {
             const isActive = cat === selectedCategory;
-            const isVideoTab = cat === 'Video Walkthroughs';
 
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-300 flex items-center gap-1.5 ${
+                className={`px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
                   isActive
                     ? 'bg-luxury-walnut text-luxury-gold shadow-md border border-luxury-gold scale-105'
                     : 'bg-luxury-card text-luxury-muted hover:text-luxury-walnut hover:border-luxury-gold/50 border border-luxury-border shadow-sm'
                 }`}
               >
-                {isVideoTab && <Film className="w-3.5 h-3.5 text-red-500" />}
                 <span>{cat}</span>
               </button>
             );

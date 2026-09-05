@@ -1,17 +1,14 @@
 export const PORTFOLIO_CATEGORIES = [
-  "All",
-  "Living Room & TV Units",
-  "Modular Kitchen",
-  "Wardrobes & Dressing",
-  "Master Bedrooms",
-  "Video Walkthroughs"
+  "All Projects",
+  "Ongoing Projects",
+  "Completed Projects"
 ];
 
 export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-1",
     title: "Master Bedroom Suite & Calacatta Gold Wardrobe Tour",
-    category: "Master Bedrooms",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 11.52.41 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg",
@@ -24,7 +21,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-2",
     title: "Minimalist Black Glass & White Modular Kitchen",
-    category: "Modular Kitchen",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 11.53.51 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.21.44 PM (1).jpeg",
@@ -37,7 +34,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-3",
     title: "Diamond-Tufted Bedroom & Floating Study Ledge",
-    category: "Master Bedrooms",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 11.53.52 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.22.39 PM.jpeg",
@@ -50,7 +47,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-4",
     title: "Neoclassical Bedroom with Emerald Velvet Bed",
-    category: "Master Bedrooms",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 4.21.42 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.21.43 PM (1).jpeg",
@@ -63,7 +60,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-5",
     title: "Modern Kitchen with Tall Appliance Unit & Glass Lofts",
-    category: "Modular Kitchen",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 4.21.45 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.21.44 PM (1).jpeg",
@@ -76,7 +73,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-6",
     title: "Turquoise Gloss Modular Kitchen & Tandem Baskets",
-    category: "Modular Kitchen",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 4.22.35 PM (1).mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.22.36 PM (2).jpeg",
@@ -89,7 +86,7 @@ export const REAL_PROJECT_VIDEOS = [
   {
     id: "vid-7",
     title: "Precision Headboard & Vanity Joinery Detail Pan",
-    category: "Master Bedrooms",
+    category: "Completed Projects",
     type: "video",
     videoUrl: "/media/WhatsApp Video 2026-08-16 at 11.53.26 PM.mp4",
     poster: "/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg",
@@ -105,7 +102,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-1",
     title: "Backlit Marble TV Unit with Teak Fluted Louvers",
-    category: "Living Room & TV Units",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki, Hyderabad",
     scope: "Full-Height Entertainment Wall & Chandelier Ceiling",
@@ -116,7 +113,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-2",
     title: "Luxury Master Bedroom with Chevron Velvet Headboard",
-    category: "Master Bedrooms",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki, Hyderabad",
     scope: "Master Suite & Organic Curved False Ceiling",
@@ -127,7 +124,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-3",
     title: "Sprawling L-Shape Calacatta Gold Wardrobe & Dressing Mirror",
-    category: "Wardrobes & Dressing",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki, Hyderabad",
     scope: "Ceiling-Height Wardrobe System with Overhead Lofts",
@@ -138,7 +135,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-4",
     title: "Dining Crockery Unit with Illuminated Glass Display",
-    category: "Modular Kitchen",
+    category: "Completed Projects",
     type: "image",
     location: "Shaikpet, Hyderabad",
     scope: "Crockery Storage & Kitchen Pass-Through Hatch",
@@ -149,7 +146,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-5",
     title: "Fluted Charcoal TV Wall with Twin Glass Curio Towers",
-    category: "Living Room & TV Units",
+    category: "Completed Projects",
     type: "image",
     location: "Jubilee Hills, Hyderabad",
     scope: "Acoustic TV Feature Wall & Illuminated Display",
@@ -160,7 +157,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-6",
     title: "Gloss Grey & White Sliding Wardrobe with Rose-Gold Inlays",
-    category: "Wardrobes & Dressing",
+    category: "Completed Projects",
     type: "image",
     location: "Banjara Hills, Hyderabad",
     scope: "2-Door Sliding Wardrobe with Integrated Side Vanity",
@@ -171,7 +168,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-7",
     title: "Turquoise High-Gloss L-Shaped Modular Kitchen",
-    category: "Modular Kitchen",
+    category: "Completed Projects",
     type: "image",
     location: "Gachibowli, Hyderabad",
     scope: "Modular Kitchen Fit-Out & Tandem Wire Baskets",
@@ -182,7 +179,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-8",
     title: "Statuario Marble & Rose-Gold Inlay TV Wall with Tower",
-    category: "Living Room & TV Units",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki, Hyderabad",
     scope: "Living Room TV Unit & Multi-Shelf Display Tower",
@@ -193,7 +190,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-9",
     title: "Built-In White Wardrobe with Internal Organizers & Lofts",
-    category: "Wardrobes & Dressing",
+    category: "Completed Projects",
     type: "image",
     location: "Shaikpet, Hyderabad",
     scope: "Floor-to-Ceiling Wardrobe & Internal Compartments",
@@ -204,7 +201,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-10",
     title: "Symmetrical Calacatta Marble & Walnut TV Entertainment Unit",
-    category: "Living Room & TV Units",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki, Hyderabad",
     scope: "Entertainment Unit & Dual Display Pillars",
@@ -215,7 +212,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-11",
     title: "Ceiling-Height Grey Sliding Wardrobe with 4-Bay Lofts",
-    category: "Wardrobes & Dressing",
+    category: "Completed Projects",
     type: "image",
     location: "Banjara Hills, Hyderabad",
     scope: "Master Bedroom Storage & Loft Framework",
@@ -226,7 +223,7 @@ export const PORTFOLIO_PROJECTS = [
   {
     id: "real-img-12",
     title: "Live On-Site Master Carpentry & Electrical Assembly",
-    category: "Living Room & TV Units",
+    category: "Completed Projects",
     type: "image",
     location: "Tolichowki Site, Hyderabad",
     scope: "On-Site Fabrication, Precision Joinery & Lighting Setup",

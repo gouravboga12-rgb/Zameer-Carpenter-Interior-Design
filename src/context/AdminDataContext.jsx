@@ -462,21 +462,23 @@ export function AdminDataProvider({ children }) {
       }
 
       // Sync Projects
-      const { data: dbProjects, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-      if (!pErr && dbProjects) {
+      const { data: dbProjects, error: pErr } = await supabase.from('projects').select('*');
+      if (pErr) {
+        console.warn('Supabase projects fetch notice (using cache/defaults):', pErr);
+      } else if (dbProjects && Array.isArray(dbProjects)) {
         const formattedP = dbProjects.map(p => ({
           id: p.id,
           title: p.title,
-          category: p.category,
-          location: p.location,
-          description: p.description,
-          materials: p.materials,
-          scope: p.scope,
-          image: p.image,
+          category: p.category || 'Completed Projects',
+          location: p.location || 'Tolichowki, Hyderabad',
+          description: p.description || '',
+          materials: p.materials || 'IS:710 Marine Plywood & German Hardware',
+          scope: p.scope || 'Full Turnkey Execution',
+          image: p.image || '',
           type: p.type || 'image',
-          videoUrl: p.video_url,
-          poster: p.poster,
-          duration: p.duration
+          videoUrl: p.video_url || p.videoUrl || '',
+          poster: p.poster || p.image || '',
+          duration: p.duration || '0:45'
         }));
         const mergedProjects = mergeProjectsWithDefaults(formattedP);
         setProjects(mergedProjects);
@@ -842,7 +844,7 @@ export function AdminDataProvider({ children }) {
     const projObj = {
       id: pId,
       title: newProject.title,
-      category: newProject.category || 'Complete Interiors',
+      category: newProject.category || 'Completed Projects',
       location: newProject.location || 'Tolichowki, Hyderabad',
       description: newProject.description,
       materials: newProject.materials || 'IS:710 Marine Plywood & German Hardware',

@@ -10,13 +10,13 @@ export default function AdminProjectsManager() {
   const [isCreating, setIsCreating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [selectedFilterCategory, setSelectedFilterCategory] = useState('All');
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState('All Projects');
   const formRef = useRef(null);
 
   // Form state
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Complete Interiors',
+    category: 'Completed Projects',
     location: 'Tolichowki, Hyderabad',
     description: '',
     materials: 'IS:710 Marine Plywood & German Hardware',
@@ -32,7 +32,7 @@ export default function AdminProjectsManager() {
     setUploadError('');
     setFormData({
       title: '',
-      category: 'Complete Interiors',
+      category: 'Completed Projects',
       location: 'Tolichowki, Hyderabad',
       description: '',
       materials: 'IS:710 Marine Plywood & German Hardware',
@@ -56,7 +56,7 @@ export default function AdminProjectsManager() {
     setEditingProject(p);
     setFormData({
       title: p.title,
-      category: p.category,
+      category: p.category || 'Completed Projects',
       location: p.location,
       description: p.description,
       materials: p.materials,
@@ -153,9 +153,35 @@ export default function AdminProjectsManager() {
   };
 
   const filteredProjects = projects.filter(p => {
-    if (selectedFilterCategory === 'Video Walkthroughs') return p.type === 'video' || !!p.videoUrl;
-    if (selectedFilterCategory !== 'All') return p.category === selectedFilterCategory;
-    return true;
+    if (selectedFilterCategory === 'All Projects' || selectedFilterCategory === 'All') return true;
+    if (
+      selectedFilterCategory === 'Ongoing Projects' || 
+      selectedFilterCategory === 'Ongoing projects' || 
+      selectedFilterCategory === 'Up Coming Projects' || 
+      selectedFilterCategory === 'Upcoming Projects'
+    ) {
+      return (
+        p.category === 'Ongoing Projects' || 
+        p.category === 'Ongoing projects' || 
+        p.category === 'Up Coming Projects' || 
+        p.category === 'Upcoming Projects' || 
+        p.category === 'All Projects'
+      );
+    }
+    if (
+      selectedFilterCategory === 'Completed Projects' || 
+      selectedFilterCategory === 'Completed  Projects' || 
+      selectedFilterCategory === 'Recent Projects'
+    ) {
+      return (
+        p.category === 'Completed Projects' || 
+        p.category === 'Completed  Projects' || 
+        p.category === 'Recent Projects' || 
+        p.category === 'All Projects' || 
+        (p.category !== 'Ongoing Projects' && p.category !== 'Ongoing projects' && p.category !== 'Up Coming Projects' && p.category !== 'Upcoming Projects')
+      );
+    }
+    return p.category === selectedFilterCategory;
   });
 
   const isVideoForm = formData.type === 'video';
@@ -167,7 +193,7 @@ export default function AdminProjectsManager() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-luxury-card p-5 rounded-2xl border border-luxury-gold/30 shadow-sm">
         <div>
           <h2 className="font-heading text-xl font-bold text-luxury-walnut">
-            Recent Projects & Media Library ({projects.length} Items)
+            Projects & Media Library ({projects.length} Items)
           </h2>
           <p className="text-xs text-luxury-muted mt-0.5">
             Upload new project photos (under 5MB) and video walkthroughs (under 10MB).
@@ -264,12 +290,9 @@ export default function AdminProjectsManager() {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full p-3 rounded-xl bg-luxury-surface border border-luxury-border text-xs text-luxury-walnut font-medium focus:border-luxury-gold focus:outline-none"
                 >
-                  <option value="Complete Interiors">Complete Interiors</option>
-                  <option value="Modular Kitchens">Modular Kitchens</option>
-                  <option value="Custom Wardrobes">Custom Wardrobes</option>
-                  <option value="Living Rooms">Living Rooms</option>
-                  <option value="Bespoke Woodcraft">Bespoke Woodcraft</option>
-                  <option value="Commercial & Renovation">Commercial & Renovation</option>
+                  <option value="Completed Projects">Completed Projects</option>
+                  <option value="Ongoing Projects">Ongoing Projects</option>
+                  <option value="All Projects">All Projects</option>
                 </select>
               </div>
             </div>
