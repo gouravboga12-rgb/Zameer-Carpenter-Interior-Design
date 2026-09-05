@@ -5,5 +5,5 @@ Disallow: /admin
 Disallow: /admin/*
 
 # Host & Sitemap location
-Host: https://zameerinteriorcarpenter.com
-Sitemap: https://zameerinteriorcarpenter.com/sitemap.xml
+Host: https://www.zameerinteriorcarpenter.com
+Sitemap: https://www.zameerinteriorcarpenter.com/sitemap.xml
