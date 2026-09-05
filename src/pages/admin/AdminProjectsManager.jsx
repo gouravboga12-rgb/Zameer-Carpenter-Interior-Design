@@ -118,9 +118,7 @@ export default function AdminProjectsManager() {
       return;
     }
 
-    const fallbackPoster = '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg';
-    const effectiveImage = formData.type === 'image' ? formData.image : (formData.poster || formData.image || fallbackPoster);
-    const effectivePoster = formData.type === 'video' ? (formData.poster || formData.image || fallbackPoster) : (formData.image || fallbackPoster);
+    const effectiveImage = formData.type === 'image' ? formData.image : '';
 
     const projectPayload = {
       title: formData.title,
@@ -131,8 +129,8 @@ export default function AdminProjectsManager() {
       scope: formData.scope,
       image: effectiveImage,
       type: formData.type,
-      videoUrl: formData.videoUrl,
-      poster: effectivePoster,
+      videoUrl: formData.videoUrl || '',
+      poster: '',
       duration: formData.duration || '0:45'
     };
 
@@ -470,36 +468,6 @@ export default function AdminProjectsManager() {
                     </div>
                   )}
                 </div>
-
-                {/* Optional Custom Video Cover Poster */}
-                <div className="space-y-1.5 pt-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-luxury-charcoal flex items-center gap-1.5">
-                    <ImageIcon className="w-3.5 h-3.5 text-luxury-gold" />
-                    <span>Optional Custom Video Poster Cover (Photo)</span>
-                  </label>
-                  
-                  {formData.poster && formData.poster !== formData.image ? (
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-luxury-surface border border-luxury-border">
-                      <div className="flex items-center gap-3">
-                        <img src={formData.poster} alt="Poster" className="w-10 h-10 rounded-lg object-cover border border-luxury-gold/30" />
-                        <span className="text-xs font-semibold text-luxury-walnut">Custom Cover Ready</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, poster: '' }))}
-                        className="text-xs text-red-600 hover:underline cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-luxury-surface hover:bg-luxury-border border border-luxury-border text-luxury-charcoal font-bold text-xs cursor-pointer">
-                      <Upload className="w-3.5 h-3.5 text-luxury-gold" />
-                      <span>Upload Custom Cover Poster Image</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} className="hidden" />
-                    </label>
-                  )}
-                </div>
               </div>
             )}
 
@@ -549,12 +517,22 @@ export default function AdminProjectsManager() {
               className="bg-luxury-card rounded-2xl overflow-hidden border border-luxury-border shadow-sm flex flex-col justify-between"
             >
               <div className="relative aspect-[4/3] bg-luxury-walnut overflow-hidden">
-                <img
-                  src={item.poster || item.image || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85'}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-luxury-walnut/90 via-transparent to-black/20" />
+                {isVideo && item.videoUrl ? (
+                  <video
+                    src={item.videoUrl}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover pointer-events-none"
+                  />
+                ) : (
+                  <img
+                    src={item.image || '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg'}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-luxury-walnut/90 via-transparent to-black/20 pointer-events-none" />
                 
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
                   {isVideo ? (

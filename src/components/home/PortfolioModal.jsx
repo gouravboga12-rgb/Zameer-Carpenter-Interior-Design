@@ -97,7 +97,6 @@ export default function PortfolioModal({ project, isOpen, onClose, onPrev, onNex
                   <video
                     ref={videoRef}
                     src={project.videoUrl}
-                    poster={project.poster}
                     controls
                     autoPlay
                     muted

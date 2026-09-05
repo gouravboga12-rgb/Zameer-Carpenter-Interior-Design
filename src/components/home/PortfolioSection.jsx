@@ -130,7 +130,7 @@ export default function PortfolioSection({ isHomePage = false }) {
                 >
                   {/* Media Thumbnail Box */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-luxury-walnut">
-                    {isVideo && item.videoUrl && !item.poster && !item.image ? (
+                    {isVideo && item.videoUrl ? (
                       <video
                         src={item.videoUrl}
                         preload="metadata"
@@ -140,7 +140,7 @@ export default function PortfolioSection({ isHomePage = false }) {
                       />
                     ) : (
                       <img
-                        src={displayImage}
+                        src={item.image || '/media/WhatsApp Image 2026-08-16 at 4.22.38 PM.jpeg'}
                         alt={item.title}
                         className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-700 ease-out"
                         loading="lazy"
