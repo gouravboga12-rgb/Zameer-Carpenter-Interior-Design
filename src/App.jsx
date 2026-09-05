@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer';
 import FloatingActions from './components/layout/FloatingActions';
 import ScrollToTop from './components/layout/ScrollToTop';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import SEOHead from './components/common/SEOHead';
 import { AdminDataProvider } from './context/AdminDataContext';
 
 // Pages
@@ -46,6 +47,9 @@ function AppLayout() {
     <div className="min-h-screen bg-luxury-bg text-luxury-charcoal selection:bg-luxury-gold selection:text-luxury-walnut relative flex flex-col justify-between">
       {/* Route Change Scroll Reset */}
       <ScrollToTop />
+
+      {/* Dynamic SEO Meta & Canonical Tag Handler */}
+      <SEOHead />
 
       {/* Luxury Animated Splash Screen Intro on initial load */}
       <SplashScreen onComplete={() => setSplashFinished(true)} />

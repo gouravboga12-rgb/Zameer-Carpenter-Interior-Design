@@ -1,0 +1,9 @@
+# User-agent configuration for search engine crawlers
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+
+# Host & Sitemap location
+Host: https://zameerinteriorcarpenter.com
+Sitemap: https://zameerinteriorcarpenter.com/sitemap.xml
