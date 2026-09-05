@@ -38,6 +38,7 @@ export default function AdminServicesManager() {
   const [uploadError, setUploadError] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const formRef = useRef(null);
+  const fieldEditorRef = useRef(null);
 
   // Field Editor Sub-State (For Adding or Editing a specific field inside the form)
   const [editingFieldIndex, setEditingFieldIndex] = useState(null); // number | null
@@ -170,6 +171,10 @@ export default function AdminServicesManager() {
       optionsText: 'Option 1\nOption 2\nOption 3'
     });
     setIsAddingField(true);
+    setTimeout(() => {
+      fieldEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('field-label-input')?.focus();
+    }, 60);
   };
 
   const handleOpenEditField = (index) => {
@@ -185,6 +190,10 @@ export default function AdminServicesManager() {
       optionsText: (target.options || []).join('\n')
     });
     setIsAddingField(false);
+    setTimeout(() => {
+      fieldEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('field-label-input')?.focus();
+    }, 60);
   };
 
   const handleSaveField = (e) => {
@@ -789,7 +798,11 @@ export default function AdminServicesManager() {
 
                 {/* Inline Field Editor Modal / Box (When creating or editing a single field) */}
                 {(isAddingField || editingFieldIndex !== null) && (
-                  <div className="p-5 sm:p-6 rounded-3xl bg-amber-50/70 border-2 border-luxury-gold shadow-lg space-y-4 animate-fadeIn">
+                  <div
+                    ref={fieldEditorRef}
+                    id="field-editor-box"
+                    className="p-5 sm:p-6 rounded-3xl bg-amber-50/90 border-2 border-luxury-gold shadow-2xl space-y-4 animate-fadeIn scroll-mt-28 ring-4 ring-luxury-gold/30 transition-all duration-300"
+                  >
                     <div className="flex items-center justify-between border-b border-luxury-gold/30 pb-3">
                       <div className="flex items-center gap-2">
                         <Edit2 className="w-4 h-4 text-luxury-gold-dark" />
@@ -802,7 +815,7 @@ export default function AdminServicesManager() {
                       <button
                         type="button"
                         onClick={() => { setIsAddingField(false); setEditingFieldIndex(null); }}
-                        className="p-1 rounded-full text-luxury-muted hover:text-luxury-walnut hover:bg-white/80"
+                        className="p-1 rounded-full text-luxury-muted hover:text-luxury-walnut hover:bg-white/80 cursor-pointer"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -815,6 +828,7 @@ export default function AdminServicesManager() {
                           Field Label <span className="text-red-500">*</span>
                         </label>
                         <input
+                          id="field-label-input"
                           type="text"
                           required
                           value={fieldFormData.label}
